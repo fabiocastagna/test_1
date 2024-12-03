@@ -1,9 +1,0 @@
-{
-  "name": "svg-centers-extractor",
-  "version": "1.0.0",
-  "description": "Extract hexagon centers from SVG",
-  "main": "extract_centers.js",
-  "dependencies": {
-    "xmldom": "^0.6.0"
-  }
-}
