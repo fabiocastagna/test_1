@@ -104,6 +104,15 @@ function disegnaEsagono(x, y, raggio, rotazione = 0, colore, hover = false, opac
   push(); // Salva lo stato corrente
   translate(x, y); // Trasla il sistema di coordinate
   rotate(rotazione); // Ruota il sistema di coordinate
+  
+  // Aggiungi effetto blur per l'esagono hover usando il colore originale
+  if (hover) {
+    drawingContext.shadowBlur = 50; // Aumenta il blur
+    drawingContext.shadowColor = color(red(colore), green(colore), blue(colore), 150); // Usa il colore dell'esagono per il blur
+  } else {
+    drawingContext.shadowBlur = 0;
+  }
+  
   stroke("white"); // Imposta il colore del bordo a bianco
   strokeWeight(0.5); // Imposta lo spessore del bordo
   fill(0); // Imposta il colore di riempimento a nero
