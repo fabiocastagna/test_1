@@ -1,6 +1,7 @@
 let tabella;
 let esagoni = [];
 let coloriRegioni = {};
+let regioneHover = null;
 
 function preload() {
   tabella = loadTable('/database/coordinate.csv', 'csv', 'header', () => {
@@ -13,20 +14,17 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   
-  // Calcola il fattore di scala basato sulle dimensioni più piccole
-  let scaleFactor = min(width, height) / 800;
+  let margineFactor = 0.8;
+  let scaleFactor = min(width, height) / 1000 * margineFactor;
   
-  // Calcola la distanza e il raggio in modo dinamico
-  let distanza = min(width, height) / 16; // Una proporzione più flessibile
-  let raggio = distanza / sqrt(3);
+  let distanza = min(width, height) / 16;
+  let raggio = distanza / sqrt(10);
 
-  // Genera colori unici per ogni regione
   let regioni = new Set(tabella.getColumn('regione'));
   for (let regione of regioni) {
     coloriRegioni[regione] = color(random(255), random(255), random(255));
   }
   
-  // Calcolo del centro di raggruppamento
   let centerX = 0, centerY = 0;
   let numEsagoni = tabella.rows.length;
   
@@ -41,48 +39,67 @@ function setup() {
   centerX /= numEsagoni;
   centerY /= numEsagoni;
   
-  // Svuota l'array degli esagoni prima di riempirlo
   esagoni = [];
   
-  // Converti i dati con un approccio più dinamico
   for (let riga of tabella.rows) {
     let x = parseFloat(riga.get('x').replace(',', '.')) * scaleFactor;
     let y = parseFloat(riga.get('y').replace(',', '.')) * scaleFactor;
     
     esagoni.push({ 
-      x: map(x - centerX, -width/2, width/2, 0, width),
-      y: map(y - centerY, -height/2, height/2, 0, height),
+      x: map(x - centerX, -width/2, width/2, width * 0.1, width * 0.9),
+      y: map(y - centerY, -height/2, height/2, height * 0.1, height * 0.9),
       rotazione: HALF_PI,
       regione: riga.get('regione'),
-      raggio: raggio 
+      raggio: raggio
     });
   }
 }
 
 function draw() {
-  background(220);
+  background("black");
   
+  // Resetta regioneHover
+  regioneHover = null;
+  
+  // Controlla hover sulla regione
+  for (let esagono of esagoni) {
+    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+    if (distanza < esagono.raggio * 1.5) {
+      regioneHover = esagono.regione;
+      break;
+    }
+  }
+  
+  // Disegna gli esagoni
   for (let esagono of esagoni) {
     disegnaEsagono(
       esagono.x,
       esagono.y,
       esagono.raggio,
       esagono.rotazione,
-      coloriRegioni[esagono.regione]
+      coloriRegioni[esagono.regione],
+      esagono.regione === regioneHover
     );
   }
-  
-  disegnaLegenda();
 }
 
-function disegnaEsagono(x, y, raggio, rotazione = 0, colore) {
+function disegnaEsagono(x, y, raggio, rotazione = 0, colore, hover = false) {
   push();
   translate(x, y);
   rotate(rotazione);
   
-  fill(colore);
-  stroke(50);
-  strokeWeight(2);
+  // Modifica l'aspetto se in hover
+  if (hover) {
+    strokeWeight(0);
+    stroke(0);
+    // Rendi il colore più chiaro con un'animazione
+    let coloreHover = lerpColor(colore, color(red(colore) + 50, green(colore) + 50, blue(colore) + 50), 1.5);
+    fill(coloreHover);
+  } else {
+    strokeWeight(2);
+    stroke(0);
+    fill(colore);
+  }
   
   beginShape();
   for (let angolo = 0; angolo < 6; angolo++) {
@@ -91,30 +108,11 @@ function disegnaEsagono(x, y, raggio, rotazione = 0, colore) {
     vertex(verticeX, verticeY);
   }
   endShape(CLOSE);
-  
-  fill(255, 0, 0);
-  circle(0, 0, 5);
-  
+    
   pop();
-}
-
-function disegnaLegenda() {
-  let x = 20;
-  let y = 20;
-  let size = 20;
-  let spacing = 30;
-  
-  for (let regione in coloriRegioni) {
-    fill(coloriRegioni[regione]);
-    rect(x, y, size, size);
-    fill(0);
-    textAlign(LEFT, CENTER);
-    text(regione, x + size + 5, y + size / 2);
-    y += spacing;
-  }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  setup(); // Ricalcola le posizioni degli esagoni
+  setup();
 }
