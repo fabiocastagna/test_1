@@ -65,7 +65,9 @@ function setup() {
       rotazione: HALF_PI, // Imposta la rotazione iniziale
       regione: riga.get('regione'), // Assegna la regione
       raggio: raggio, // Assegna il raggio
-      colore: colore // Assegna il colore
+      colore: colore, // Assegna il colore
+      opacita: 255, // Set initial opacity to full
+      hoverState: 0 // Aggiunge lo stato di hover
     });
   }
 }
@@ -73,48 +75,59 @@ function setup() {
 function draw() {
   background("black"); // Imposta lo sfondo a nero
   
-  regioneHover = null; // Resetta la regione sotto il cursore
+  let nuovaRegioneHover = null; // Variabile temporanea per la nuova regione hover
   
   for (let esagono of esagoni) {
     // Controlla se il cursore è sopra un esagono
     let distanza = dist(mouseX, mouseY, esagono.x, esagono.y); // Calcola la distanza tra il cursore e l'esagono
     if (distanza < esagono.raggio * 1.5) { // Se il cursore è vicino all'esagono
-      regioneHover = esagono.regione; // Imposta la regione hover
+      nuovaRegioneHover = esagono.regione; // Imposta la nuova regione hover
       break; // Esci dal ciclo
     }
   }
   
+  // Aggiorna la regione hover
+  if (nuovaRegioneHover !== regioneHover) {
+    regioneHover = nuovaRegioneHover;
+  }
+  
   for (let esagono of esagoni) {
-    // Disegna gli esagoni
-    let targetOpacita = esagono.regione === regioneHover ? 255 : 100; // Imposta l'opacità in base alla regione hover
-    esagono.opacita = (regioneHover) ? lerp(esagono.opacita || 255, targetOpacita, 0.1) : lerp(esagono.opacita || 255, 255, 0.1); // Calcola l'opacità
+    // Update hover state
+    let targetHoverState = esagono.regione === regioneHover ? 1 : 0;
+    esagono.hoverState = lerp(esagono.hoverState, targetHoverState, 0.1);
+    
+    // Update opacity
+    let targetOpacita = esagono.regione === regioneHover ? 255 : (regioneHover ? 100 : 255);
+    esagono.opacita = lerp(esagono.opacita, targetOpacita, 0.1);
+    
+    // Draw hexagon
     disegnaEsagono(
-      esagono.x, // Coordinate x
-      esagono.y, // Coordinate y
-      esagono.raggio, // Raggio
-      esagono.rotazione, // Rotazione
-      esagono.colore, // Colore
-      esagono.regione === regioneHover, // Se è la regione hover
-      esagono.opacita // Opacità
+      esagono.x,
+      esagono.y,
+      esagono.raggio,
+      esagono.rotazione,
+      esagono.colore,
+      esagono.hoverState,
+      esagono.opacita
     );
   }
 }
 
-function disegnaEsagono(x, y, raggio, rotazione = 0, colore, hover = false, opacita = 255) {
+function disegnaEsagono(x, y, raggio, rotazione = 0, colore, hoverState, opacita) {
   push(); // Salva lo stato corrente
   translate(x, y); // Trasla il sistema di coordinate
   rotate(rotazione); // Ruota il sistema di coordinate
   
-  // Aggiungi effetto blur per l'esagono hover usando il colore originale
-  if (hover) {
-    drawingContext.shadowBlur = 50; // Aumenta il blur
-    drawingContext.shadowColor = color(red(colore), green(colore), blue(colore), 150); // Usa il colore dell'esagono per il blur
-  } else {
-    drawingContext.shadowBlur = 0;
-  }
+  // Interpola il colore e lo spessore del bordo
+  let strokeColor = lerpColor(color("grey"), color("white"), hoverState);
+  let strokeW = lerp(0.5, 2, hoverState);
+  stroke(strokeColor);
+  strokeWeight(strokeW);
   
-  stroke("white"); // Imposta il colore del bordo a bianco
-  strokeWeight(0.5); // Imposta lo spessore del bordo
+  // Interpola l'effetto di blur
+  drawingContext.shadowBlur = lerp(0, 50, hoverState);
+  drawingContext.shadowColor = color(red(colore), green(colore), blue(colore), lerp(0, 150, hoverState));
+  
   fill(0); // Imposta il colore di riempimento a nero
   beginShape(); // Inizia a disegnare la forma
   for (let angolo = 0; angolo < 6; angolo++) {
@@ -141,3 +154,4 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight); // Ridimensiona il canvas in base alla finestra
   setup(); // Richiama la funzione setup per ricalcolare le posizioni
 }
+
