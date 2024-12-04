@@ -1,115 +1,189 @@
-let tabella; // Variabile per memorizzare la tabella dei dati
-let esagoni = []; // Array per memorizzare gli esagoni
-let coloriRegioni = {}; // Oggetto per memorizzare i colori delle regioni
-let regioneHover = null; // Variabile per tenere traccia della regione sotto il cursore
+let tabella;
+let esagoni = [];
+let regioneHover = null;
+let regioneSelezionata = null;
+
+// Oggetto per memorizzare le informazioni geometriche di ogni regione
+let infoRegioni = {};
 
 function preload() {
-  // Carica la tabella da un file CSV
   tabella = loadTable('/database/coordinate.csv', 'csv', 'header', () => {
-    console.log('Caricamento completato'); // Messaggio di conferma al caricamento
+    console.log('Caricamento completato');
   }, (error) => {
-    console.error('Errore nel caricamento:', error); // Messaggio di errore se il caricamento fallisce
+    console.error('Errore nel caricamento:', error);
   });
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight); // Crea un canvas delle dimensioni della finestra
+  createCanvas(windowWidth, windowHeight);
   
-  let margineFactor = 0.6; // Fattore per il margine
-  let scaleFactor = min(width, height) / 1000 * margineFactor; // Calcola il fattore di scala in base alle dimensioni del canvas
+  let margineFactor = 1;
+  let scaleFactor = min(width, height) / 1700 * margineFactor;
   
-  let distanza = min(width, height) / 20; // Calcola la distanza tra gli esagoni
-  let raggio = distanza / sqrt(10); // Calcola il raggio degli esagoni
+  let distanza = min(width, height) / 20;
+  let raggio = distanza / sqrt(10);
   
-  let regioni = new Set(tabella.getColumn('regione')); // Crea un insieme delle regioni uniche dalla tabella
+  let regioni = new Set(tabella.getColumn('regione'));
   for (let regione of regioni) {
-    // Assegna un colore casuale a ciascuna regione
-    coloriRegioni[regione] = color(random(255), random(255), random(255));
+    
+    infoRegioni[regione] = {
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity,
+      centerX: 0,
+      centerY: 0,
+      count: 0
+    };
   }
   
-  let centerX = 0, centerY = 0; // Inizializza le coordinate centrali
-  let numEsagoni = tabella.rows.length; // Ottiene il numero di esagoni dalla tabella
+  let sovraffollamenti = tabella.getColumn('sovraffollamento').map(Number);
+  let maxSovraffollamento = Math.max(...sovraffollamenti);
+  let minSovraffollamento = Math.min(...sovraffollamenti);
   
-  let sovraffollamenti = tabella.getColumn('sovraffollamento').map(Number); // Estrae e converte i dati di sovraffollamento in numeri
-  let maxSovraffollamento = Math.max(...sovraffollamenti); // Trova il massimo sovraffollamento
-  let minSovraffollamento = Math.min(...sovraffollamenti); // Trova il minimo sovraffollamento
   
   for (let riga of tabella.rows) {
-    // Calcola le coordinate medie degli esagoni
-    let x = parseFloat(riga.get('x').replace(',', '.')) * scaleFactor; // Estrae e scala la coordinata x
-    let y = parseFloat(riga.get('y').replace(',', '.')) * scaleFactor; // Estrae e scala la coordinata y
+    let x = parseFloat(riga.get('x').replace(',', '.')) * scaleFactor;
+    let y = parseFloat(riga.get('y').replace(',', '.')) * scaleFactor;
+    let sovraffollamento = parseFloat(riga.get('sovraffollamento'));
+    let regione = riga.get('regione');
     
-    centerX += x; // Somma le coordinate x
-    centerY += y; // Somma le coordinate y
-  }
-  
-  centerX /= numEsagoni; // Calcola la media delle coordinate x
-  centerY /= numEsagoni; // Calcola la media delle coordinate y
-  
-  esagoni = []; // Resetta l'array degli esagoni
-  
-  for (let riga of tabella.rows) {
-    // Crea gli esagoni in base ai dati della tabella
-    let x = parseFloat(riga.get('x').replace(',', '.')) * scaleFactor; // Estrae e scala la coordinata x
-    let y = parseFloat(riga.get('y').replace(',', '.')) * scaleFactor; // Estrae e scala la coordinata y
-    let sovraffollamento = parseFloat(riga.get('sovraffollamento')); // Estrae il sovraffollamento
+    let colore = lerpColor(color("green"), color("yellow"), (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento));
+    colore = lerpColor(colore, color("red"), (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento));
     
-    // Calcola il colore in base al sovraffollamento
-    let colore = lerpColor(color("green"), color("yellow"), (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento)); // Modificato per la sfumatura
-    colore = lerpColor(colore, color("red"), (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento)); // Aggiunta la transizione verso il verde
+    let mappedX = map(x, 0, width, width * 0.1, width * 0.9);
+    let mappedY = map(y, 0, height, height * 0.1, height * 0.9);
     
-    // Aggiunge l'esagono all'array con le sue proprietà
+    let regionInfo = infoRegioni[regione];
+    regionInfo.minX = min(regionInfo.minX, mappedX);
+    regionInfo.maxX = max(regionInfo.maxX, mappedX);
+    regionInfo.minY = min(regionInfo.minY, mappedY);
+    regionInfo.maxY = max(regionInfo.maxY, mappedY);
+    regionInfo.centerX += mappedX;
+    regionInfo.centerY += mappedY;
+    regionInfo.count++;
+    
     esagoni.push({ 
-      x: map(x - centerX, -width/2, width/2, width * 0.1, width * 0.9), // Mappa la coordinata x
-      y: map(y - centerY, -height/2, height/2, height * 0.1, height * 0.9), // Mappa la coordinata y
-      rotazione: HALF_PI, // Imposta la rotazione iniziale
-      regione: riga.get('regione'), // Assegna la regione
-      raggio: raggio, // Assegna il raggio
-      colore: colore, // Assegna il colore
-      opacita: 255, // Set initial opacity to full
-      hoverState: 0 // Aggiunge lo stato di hover
+      x: mappedX,
+      y: mappedY,
+      originalX: mappedX,
+      originalY: mappedY,
+      rotazione: HALF_PI,
+      regione: regione,
+      raggio: raggio,
+      colore: colore,
+      opacita: 255,
+      hoverState: 0,
+      targetX: mappedX,
+      targetY: mappedY,
+      scaleMultiplier: 1
     });
+  }
+  
+  // Calcola il centro di massa per ogni regione
+  for (let regione in infoRegioni) {
+    let regionInfo = infoRegioni[regione];
+    regionInfo.centerX /= regionInfo.count;
+    regionInfo.centerY /= regionInfo.count;
+    regionInfo.width = regionInfo.maxX - regionInfo.minX;
+    regionInfo.height = regionInfo.maxY - regionInfo.minY;
   }
 }
 
 function draw() {
-  background("black"); // Imposta lo sfondo a nero
+  background("black");
   
-  let nuovaRegioneHover = null; // Variabile temporanea per la nuova regione hover
+  let nuovaRegioneHover = null;
   
   for (let esagono of esagoni) {
-    // Controlla se il cursore è sopra un esagono
-    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y); // Calcola la distanza tra il cursore e l'esagono
-    if (distanza < esagono.raggio * 1.5) { // Se il cursore è vicino all'esagono
-      nuovaRegioneHover = esagono.regione; // Imposta la nuova regione hover
-      break; // Esci dal ciclo
+    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+    if (distanza < esagono.raggio * 1.5) {
+      nuovaRegioneHover = esagono.regione;
+      break;
     }
   }
   
-  // Aggiorna la regione hover
   if (nuovaRegioneHover !== regioneHover) {
     regioneHover = nuovaRegioneHover;
   }
   
   for (let esagono of esagoni) {
-    // Update hover state
+    // Interpolazione fluida della posizione
+    esagono.x = lerp(esagono.x, esagono.targetX, 0.1);
+    esagono.y = lerp(esagono.y, esagono.targetY, 0.1);
+    
+    // Aggiorna hover e stato
     let targetHoverState = esagono.regione === regioneHover ? 1 : 0;
     esagono.hoverState = lerp(esagono.hoverState, targetHoverState, 0.1);
     
-    // Update opacity
-    let targetOpacita = esagono.regione === regioneHover ? 255 : (regioneHover ? 100 : 255);
+    // Gestisci l'opacità
+    let targetOpacita = 255;
+    if (regioneSelezionata) {
+      // Se una regione è selezionata, riduci l'opacità degli esagoni non selezionati
+      targetOpacita = esagono.regione === regioneSelezionata ? 255 : 30;
+    } else if (regioneHover) {
+      // Se c'è un hover, riduci l'opacità degli esagoni non in hover
+      targetOpacita = esagono.regione === regioneHover ? 255 : 100;
+    }
+    
     esagono.opacita = lerp(esagono.opacita, targetOpacita, 0.1);
     
-    // Draw hexagon
     disegnaEsagono(
       esagono.x,
       esagono.y,
-      esagono.raggio,
+      esagono.raggio * esagono.scaleMultiplier,
       esagono.rotazione,
       esagono.colore,
       esagono.hoverState,
       esagono.opacita
     );
+  }
+}
+
+function mousePressed() {
+  for (let esagono of esagoni) {
+    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+    
+    if (distanza < esagono.raggio * 1.5) {
+      if (regioneSelezionata === esagono.regione) {
+        // Deseleziona
+        regioneSelezionata = null;
+        
+        // Ripristina tutti gli esagoni alle loro posizioni originali
+        for (let hex of esagoni) {
+          hex.targetX = hex.originalX;
+          hex.targetY = hex.originalY;
+          hex.scaleMultiplier = 1;
+        }
+      } else {
+        // Seleziona nuova regione
+        regioneSelezionata = esagono.regione;
+        
+        // Calcola il centro della regione
+        let regioneEsagoni = esagoni.filter(e => e.regione === regioneSelezionata);
+        let centerX = regioneEsagoni.reduce((sum, hex) => sum + hex.originalX, 0) / regioneEsagoni.length;
+        let centerY = regioneEsagoni.reduce((sum, hex) => sum + hex.originalY, 0) / regioneEsagoni.length;
+        
+        // Calcola gli offset relativi per mantenere la forma della regione
+        regioneEsagoni.forEach(hex => {
+          let offsetX = hex.originalX - centerX;
+          let offsetY = hex.originalY - centerY;
+          
+          // Ingrandisci e sposta al centro
+          hex.targetX = width/2 + offsetX * 1.5;
+          hex.targetY = height/2 + offsetY * 1.5;
+          hex.scaleMultiplier = 1.5;
+        });
+        
+        // Sposta gli altri esagoni fuori schermo
+        esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
+          hex.targetX = hex.originalX - 100;
+          hex.targetY = hex.originalY;
+          hex.scaleMultiplier = 1;
+        });
+      }
+      break;
+    }
   }
 }
 
@@ -154,4 +228,3 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight); // Ridimensiona il canvas in base alla finestra
   setup(); // Richiama la funzione setup per ricalcolare le posizioni
 }
-
