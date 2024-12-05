@@ -89,12 +89,14 @@ function setup() {
     regionInfo.height = regionInfo.maxY - regionInfo.minY;
   }
 }
-
 function draw() {
   background("black");
   
   let nuovaRegioneHover = null;
+  let hexagoniFuoriHover = [];
+  let esagoniInHover = [];
   
+  // First, identify the hovered region
   for (let esagono of esagoni) {
     let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
     if (distanza < esagono.raggio * 1.5) {
@@ -107,6 +109,7 @@ function draw() {
     regioneHover = nuovaRegioneHover;
   }
   
+  // Separate hexagons into two groups: hovered and non-hovered
   for (let esagono of esagoni) {
     // Interpolazione fluida della posizione
     esagono.x = lerp(esagono.x, esagono.targetX, 0.1);
@@ -128,6 +131,29 @@ function draw() {
     
     esagono.opacita = lerp(esagono.opacita, targetOpacita, 0.1);
     
+    // Separate hexagons for drawing
+    if (esagono.regione === regioneHover) {
+      esagoniInHover.push(esagono);
+    } else {
+      hexagoniFuoriHover.push(esagono);
+    }
+  }
+  
+  // First draw non-hovered hexagons
+  for (let esagono of hexagoniFuoriHover) {
+    disegnaEsagono(
+      esagono.x,
+      esagono.y,
+      esagono.raggio * esagono.scaleMultiplier,
+      esagono.rotazione,
+      esagono.colore,
+      esagono.hoverState,
+      esagono.opacita
+    );
+  }
+  
+  // Then draw hovered hexagons on top
+  for (let esagono of esagoniInHover) {
     disegnaEsagono(
       esagono.x,
       esagono.y,
