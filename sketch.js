@@ -8,16 +8,11 @@ let ultimoCarattereAggiunto = 0;
 let velocitaScrittura = 50; // millisecondi tra ogni carattere
 let italiaRimpicciolita = false;
 
-// Oggetto per memorizzare le informazioni geometriche di ogni regione
-let infoRegioni = {};
-
 // Oggetto per memorizzare i testi delle regioni
 const testiRegioni = {
   "Lombardia": "La Lombardia è una delle regioni più popolose d'Italia, con una ricca storia industriale e culturale. Il suo capoluogo, Milano, è considerato il centro economico e finanziario del paese. La regione vanta una varietà di paesaggi che spaziano dalle Alpi ai laghi, fino alla pianura padana.",
   // Aggiungi altri testi per le altre regioni...
 };
-
-let bounds, scaledWidth;
 
 function preload() {
   tabella = loadTable('/database/coordinate.csv', 'csv', 'header', () => {
@@ -30,31 +25,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   
-  // Sposta i calcoli delle coordinate in una funzione separata
-  calcolaParametriMappa();
-  
-  // Ottimizza la creazione degli esagoni
-  creaEsagoni();
-}
-
-function calcolaParametriMappa() {
-  bounds = trovaCoordinateEstreme();
-  
-  let mappaWidth = bounds.maxX - bounds.minX;
-  let mappaHeight = bounds.maxY - bounds.minY;
-  let aspectRatio = mappaWidth / mappaHeight;
-  
-  marginHeight = height * 0.8;
-  scaleFactor = marginHeight / mappaHeight;
-  scaledWidth = marginHeight * aspectRatio;
-  
-  offsetX = (width - scaledWidth) / 2;
-  offsetY = height * 0.1;
-  
-  raggio = marginHeight / 45;
-}
-
-function trovaCoordinateEstreme() {
+  // Troviamo le coordinate estreme della mappa
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
   
@@ -67,27 +38,22 @@ function trovaCoordinateEstreme() {
     maxY = max(maxY, y);
   }
   
-  return {
-    minX: minX,
-    maxX: maxX,
-    minY: minY,
-    maxY: maxY
-  };
-}
-
-function creaEsagoni() {
-  let regioni = new Set(tabella.getColumn('regione'));
-  for (let regione of regioni) {
-    infoRegioni[regione] = {
-      minX: Infinity,
-      maxX: -Infinity,
-      minY: Infinity,
-      maxY: -Infinity,
-      centerX: 0,
-      centerY: 0,
-      count: 0
-    };
-  }
+  // Calcoliamo l'aspect ratio e il fattore di scala
+  let mappaWidth = maxX - minX;
+  let mappaHeight = maxY - minY;
+  let aspectRatio = mappaWidth / mappaHeight;
+  
+  // Scaliamo in base all'altezza del viewport, considerando il margine del 20%
+  let marginHeight = height * 0.8; // 80% dell'altezza (20% di margine)
+  let scaleFactor = marginHeight / mappaHeight;
+  let scaledWidth = marginHeight * aspectRatio;
+  
+  // Calcoliamo gli offset per centrare con margine del 10% su ogni lato
+  let offsetX = (width - scaledWidth) / 2;
+  let offsetY = height * 0.1; // 10% dall'alto
+  
+  // Calcoliamo il raggio in proporzione all'altezza effettiva
+  let raggio = marginHeight / 45;
   
   let sovraffollamenti = tabella.getColumn('sovraffollamento').map(Number);
   let maxSovraffollamento = Math.max(...sovraffollamenti);
@@ -99,22 +65,14 @@ function creaEsagoni() {
     let sovraffollamento = parseFloat(riga.get('sovraffollamento'));
     let regione = riga.get('regione');
     
-    let mappedX = map(x, bounds.minX, bounds.maxX, offsetX, offsetX + scaledWidth);
-    let mappedY = map(y, bounds.minY, bounds.maxY, offsetY, offsetY + marginHeight);
+    // Mappiamo le coordinate mantenendo l'aspect ratio e aggiungendo l'offsetY
+    let mappedX = map(x, minX, maxX, offsetX, offsetX + scaledWidth);
+    let mappedY = map(y, minY, maxY, offsetY, offsetY + marginHeight);
     
     let colore = lerpColor(color("green"), color("yellow"), 
       (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento));
     colore = lerpColor(colore, color("red"), 
       (sovraffollamento - minSovraffollamento) / (maxSovraffollamento - minSovraffollamento));
-    
-    let regionInfo = infoRegioni[regione];
-    regionInfo.minX = min(regionInfo.minX, mappedX);
-    regionInfo.maxX = max(regionInfo.maxX, mappedX);
-    regionInfo.minY = min(regionInfo.minY, mappedY);
-    regionInfo.maxY = max(regionInfo.maxY, mappedY);
-    regionInfo.centerX += mappedX;
-    regionInfo.centerY += mappedY;
-    regionInfo.count++;
     
     esagoni.push({
       x: mappedX,
@@ -132,15 +90,6 @@ function creaEsagoni() {
       scaleMultiplier: 1
     });
   }
-  
-  // Calcola il centro di massa per ogni regione
-  for (let regione in infoRegioni) {
-    let regionInfo = infoRegioni[regione];
-    regionInfo.centerX /= regionInfo.count;
-    regionInfo.centerY /= regionInfo.count;
-    regionInfo.width = regionInfo.maxX - regionInfo.minX;
-    regionInfo.height = regionInfo.maxY - regionInfo.minY;
-  }
 }
 
 function draw() {
@@ -150,42 +99,20 @@ function draw() {
   let hexagoniFuoriHover = [];
   let esagoniInHover = [];
   
-  if (regioneSelezionata) {
-    // Se una regione è selezionata, controlla l'hover sull'Italia rimpicciolita come un tutt'uno
-    let italiaHover = false;
-    for (let esagono of esagoni) {
-      if (esagono.regione !== regioneSelezionata) {
-        let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-        if (distanza < esagono.raggio * 1.5) {
-          italiaHover = true;
-          break;
-        }
-      }
-    }
-    
-    // Se il mouse è sopra l'Italia rimpicciolita, evidenzia tutta l'Italia
-    if (italiaHover) {
-      nuovaRegioneHover = "italia_rimpicciolita";
-    } else {
-      // Controlla hover sui singoli esagoni della regione selezionata
-      for (let esagono of esagoni) {
+  // First, identify the hovered region or hexagon
+  for (let esagono of esagoni) {
+    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+    if (distanza < esagono.raggio * 1.5) {
+      if (regioneSelezionata) {
+        // Se una regione è selezionata, evidenzia solo l'esagono specifico
         if (esagono.regione === regioneSelezionata) {
-          let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-          if (distanza < esagono.raggio * 1.5) {
-            nuovaRegioneHover = esagono;
-            break;
-          }
+          nuovaRegioneHover = esagono;
         }
-      }
-    }
-  } else {
-    // Comportamento normale quando nessuna regione è selezionata
-    for (let esagono of esagoni) {
-      let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-      if (distanza < esagono.raggio * 1.5) {
+      } else {
+        // Altrimenti, evidenzia l'intera regione
         nuovaRegioneHover = esagono.regione;
-        break;
       }
+      break;
     }
   }
   
@@ -193,41 +120,35 @@ function draw() {
     regioneHover = nuovaRegioneHover;
   }
   
-  // Aggiorna lo stato degli esagoni
+  // Separate hexagons into two groups: hovered and non-hovered
   for (let esagono of esagoni) {
+    // Interpolazione fluida della posizione
     esagono.x = lerp(esagono.x, esagono.targetX, 0.1);
     esagono.y = lerp(esagono.y, esagono.targetY, 0.1);
     
+    // Aggiorna hover e stato
     let targetHoverState = 0;
     if (regioneSelezionata) {
-      if (regioneHover === "italia_rimpicciolita") {
-        // Evidenzia tutta l'Italia rimpicciolita
-        targetHoverState = (esagono.regione !== regioneSelezionata) ? 1 : 0;
-      } else {
-        // Evidenzia solo l'esagono specifico della regione selezionata
-        targetHoverState = (regioneHover === esagono) ? 1 : 0;
-      }
+      // Se una regione è selezionata, evidenzia solo l'esagono specifico
+      targetHoverState = regioneHover === esagono ? 1 : 0;
     } else {
-      // Comportamento normale
+      // Altrimenti, evidenzia l'intera regione
       targetHoverState = esagono.regione === regioneHover ? 1 : 0;
     }
-    
     esagono.hoverState = lerp(esagono.hoverState, targetHoverState, 0.2);
     
     // Gestisci l'opacità
     let targetOpacita = 255;
     if (regioneSelezionata) {
       targetOpacita = esagono.regione === regioneSelezionata ? 255 : 30;
-      if (regioneHover === "italia_rimpicciolita" && esagono.regione !== regioneSelezionata) {
-        targetOpacita = 255;
-      }
+    } else if (regioneHover) {
+      targetOpacita = esagono.regione === regioneHover ? 255 : 100;
     }
     
     esagono.opacita = lerp(esagono.opacita, targetOpacita, 0.1);
     
-    // Organizza gli esagoni per il rendering
-    if ((regioneSelezionata && ((regioneHover === "italia_rimpicciolita" && esagono.regione !== regioneSelezionata) || 
-        (regioneHover === esagono))) || 
+    // Separate hexagons for drawing
+    if ((regioneSelezionata && regioneHover === esagono) || 
         (!regioneSelezionata && esagono.regione === regioneHover)) {
       esagoniInHover.push(esagono);
     } else {
@@ -285,78 +206,138 @@ function draw() {
 }
 
 function mousePressed() {
-  if (regioneSelezionata) {
+  if (italiaRimpicciolita) {
     // Controlla se l'Italia rimpicciolita è stata cliccata
-    let italiaCliccata = false;
     for (let esagono of esagoni) {
-      if (esagono.regione !== regioneSelezionata) {
-        let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-        if (distanza < esagono.raggio * 1.5) {
-          italiaCliccata = true;
-          break;
+      let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+      if (distanza < esagono.raggio * 1.5 && esagono.scaleMultiplier === 0.3) {
+        // Ripristina la visualizzazione iniziale
+        regioneSelezionata = null;
+        testoRegione = "";
+        indiceTestoCorrente = 0;
+        italiaRimpicciolita = false;
+        
+        // Ripristina tutti gli esagoni alle posizioni originali
+        for (let hex of esagoni) {
+          hex.targetX = hex.originalX;
+          hex.targetY = hex.originalY;
+          hex.scaleMultiplier = 1;
         }
+        return;
       }
     }
-    
-    if (italiaCliccata) {
-      // Ripristina la visualizzazione iniziale
-      regioneSelezionata = null;
-      testoRegione = "";
-      indiceTestoCorrente = 0;
-      italiaRimpicciolita = false;
-      
-      // Ripristina tutti gli esagoni alle posizioni originali
-      for (let hex of esagoni) {
-        hex.targetX = hex.originalX;
-        hex.targetY = hex.originalY;
-        hex.scaleMultiplier = 1;
-      }
-      return;
-    }
-    
-    // Gestisci il clic sui singoli esagoni della regione selezionata
+
+    // Controlla se un esagono della regione selezionata è stato cliccato
     for (let esagono of esagoni) {
       if (esagono.regione === regioneSelezionata) {
         let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
         if (distanza < esagono.raggio * 1.5) {
-          console.log(`Esagono cliccato nella regione: ${esagono.regione}`);
+          let regioneEsagoni = esagoni.filter(e => e.regione === regioneSelezionata);
+          
+          // Sposta l'esagono cliccato al centro e gli altri a sinistra
+          regioneEsagoni.forEach(hex => {
+            if (hex === esagono) {
+              hex.targetX = width * 0.5;
+              hex.targetY = height * 0.5;
+              hex.scaleMultiplier = 1.2;
+            } else {
+              hex.targetX = hex.originalX * 0.3 + width * 0.1;
+              hex.targetY = hex.originalY * 0.3 + height * 0.35;
+              hex.scaleMultiplier = 0.3;
+            }
+          });
+
+          // Sposta l'Italia rimpicciolita fuori dallo schermo
+          esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
+            hex.targetX = -width * 0.5;
+            hex.targetY = hex.originalY * 0.3 + height * 0.35;
+            hex.scaleMultiplier = 0.3;
+          });
           return;
         }
       }
     }
   }
   
-  // Comportamento normale quando nessuna regione è selezionata
+  // Codice esistente per la selezione iniziale della regione
   for (let esagono of esagoni) {
     let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+    
     if (distanza < esagono.raggio * 1.5) {
-      regioneSelezionata = esagono.regione;
-      testoRegione = "";
-      indiceTestoCorrente = 0;
-      italiaRimpicciolita = true;
-      
-      // Calcola il centro della regione selezionata
-      let regioneEsagoni = esagoni.filter(e => e.regione === regioneSelezionata);
-      let centerX = regioneEsagoni.reduce((sum, hex) => sum + hex.originalX, 0) / regioneEsagoni.length;
-      let centerY = regioneEsagoni.reduce((sum, hex) => sum + hex.originalY, 0) / regioneEsagoni.length;
-      
-      // Sposta e scala la regione selezionata
-      regioneEsagoni.forEach(hex => {
-        let offsetX = hex.originalX - centerX;
-        let offsetY = hex.originalY - centerY;
+      if (esagono.regione === regioneSelezionata) {
+        // Se l'esagono è al centro, sposta la regione al centro e l'Italia a sinistra
+        let regioneEsagoni = esagoni.filter(e => e.regione === regioneSelezionata);
+        let esagonoAlCentro = esagono.scaleMultiplier === 1.2;
+
+        if (esagonoAlCentro) {
+          // Sposta la regione al centro
+          let centerX = regioneEsagoni.reduce((sum, h) => sum + h.originalX, 0) / regioneEsagoni.length;
+          let centerY = regioneEsagoni.reduce((sum, h) => sum + h.originalY, 0) / regioneEsagoni.length;
+          
+          regioneEsagoni.forEach(hex => {
+            let offsetX = hex.originalX - centerX;
+            let offsetY = hex.originalY - centerY;
+            hex.targetX = width * 0.5 + offsetX * 1.2;
+            hex.targetY = height * 0.5 + offsetY * 1.2;
+            hex.scaleMultiplier = 1.2;
+          });
+
+          // Sposta l'Italia a sinistra
+          esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
+            hex.targetX = hex.originalX * 0.3 + width * 0.1;
+            hex.targetY = hex.originalY * 0.3 + height * 0.35;
+            hex.scaleMultiplier = 0.3;
+          });
+        } else {
+          // Sposta l'esagono al centro e la regione a sinistra
+          regioneEsagoni.forEach(hex => {
+            if (hex === esagono) {
+              hex.targetX = width * 0.5;
+              hex.targetY = height * 0.5;
+              hex.scaleMultiplier = 1.2;
+            } else {
+              hex.targetX = hex.originalX * 0.3 + width * 0.1;
+              hex.targetY = hex.originalY * 0.3 + height * 0.35;
+              hex.scaleMultiplier = 0.3;
+            }
+          });
+
+          // Sposta l'Italia fuori dallo schermo
+          esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
+            hex.targetX = -width * 0.5;
+            hex.targetY = hex.originalY * 0.3 + height * 0.35;
+            hex.scaleMultiplier = 0.3;
+          });
+        }
+      } else {
+        // Seleziona nuova regione
+        regioneSelezionata = esagono.regione;
+        testoRegione = "";
+        indiceTestoCorrente = 0;
+        italiaRimpicciolita = true;
         
-        // Posiziona la regione selezionata al centro dello schermo
-        hex.targetX = width * 0.5 + offsetX * 1.2;  // Scala meno per avvicinare gli esagoni
-        hex.targetY = height/2 + offsetY * 1.2;     // Scala meno per avvicinare gli esagoni
-        hex.scaleMultiplier = 1.2;                  // Scala meno per avvicinare gli esagoni
-      });
-      
-      // Sposta l'Italia rimpicciolita a sinistra
-      esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
-        hex.targetX = hex.originalX * 0.3 + width * 0.1;  // Posiziona a 1/3 dello schermo verso sinistra
-        hex.targetY = hex.originalY * 0.3 + height * 0.35;
-        hex.scaleMultiplier = 0.3;                        // Rimpicciolisci ulteriormente
-      });
+        // Calcola il centro della regione selezionata
+        let regioneEsagoni = esagoni.filter(e => e.regione === regioneSelezionata);
+        let centerX = regioneEsagoni.reduce((sum, hex) => sum + hex.originalX, 0) / regioneEsagoni.length;
+        let centerY = regioneEsagoni.reduce((sum, hex) => sum + hex.originalY, 0) / regioneEsagoni.length;
+        
+        // Sposta e scala la regione selezionata
+        regioneEsagoni.forEach(hex => {
+          let offsetX = hex.originalX - centerX;
+          let offsetY = hex.originalY - centerY;
+          hex.targetX = width * 0.5 + offsetX * 1.2;
+          hex.targetY = height/2 + offsetY * 1.2;
+          hex.scaleMultiplier = 1.2;
+        });
+        
+        // Sposta l'Italia rimpicciolita a sinistra
+        esagoni.filter(e => e.regione !== regioneSelezionata).forEach(hex => {
+          hex.targetX = hex.originalX * 0.3 + width * 0.1;
+          hex.targetY = hex.originalY * 0.3 + height * 0.35;
+          hex.scaleMultiplier = 0.3;
+        });
+      }
+      return;
     }
   }
 }
