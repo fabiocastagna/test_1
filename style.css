@@ -1,60 +1,121 @@
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     height: 100%;
-    width: 100%;
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
+    background-color: #000000;
+    color: #fafafa;
+    font-family: 'Space Grotesk', sans-serif;
 }
 
 #intro-page {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: black;
+    inset: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
 }
 
 .intro-content {
     text-align: center;
-    max-width: 800px;
-    padding: 20px;
 }
 
-#prison-stats {
-    font-size: 24px;
-    line-height: 1.5;
-    margin-bottom: 40px;
-}
-
-#start-button {
-    background-color: black;
-    border: 2px solid white;
-    color: white;
-    padding: 15px 40px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: 20px;
-    position: relative;
+/* Stili per l'effetto macchina da scrivere */
+.line1, .line2 {
+    display: block;
+    white-space: nowrap;
     overflow: hidden;
+    font-size: 32px;
+    line-height: 1.6;
+    position: relative;
+    width: 0;
+    margin: 0 auto;
+}
+
+.line1 {
+    margin-bottom: 10px;
+    animation: 
+        typewriter 2.5s steps(30, end) forwards,
+        cursor-blink 0.8s steps(1) infinite;
+    animation-iteration-count: 1, 4;
+}
+
+.line2-container {
+    width: 480px;
+    margin: 0 auto;
+    text-align: left;
+    position: relative;
+}
+
+.line2 {
+    animation: 
+        typewriter 2.5s 3.5s steps(30, end) forwards,
+        cursor-blink 0.8s steps(1) infinite 3.5s;
+    animation-iteration-count: 1, 4;
+    visibility: hidden;
+    display: inline-block;
+    margin: 0;
+}
+
+/* Numeri in rosso */
+.number {
+    color: #ff4444;
+}
+
+/* Solo per il primo numero (189) */
+.number.bold {
+    color: #fafafa;
+}
+
+/* Bottone */
+#start-button {
+    background-color: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    color: #fafafa;
+    padding: 18px 48px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 30px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 0.5s ease forwards;
+    animation-delay: 6s;
 }
 
 #start-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: scale(1.03);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
 }
 
-#start-button:active {
-    transform: scale(0.98);
+/* Animazioni */
+@keyframes typewriter {
+    0% { 
+        width: 0;
+        visibility: visible;
+        border-right: 2px solid #fafafa;
+    }
+    99% {
+        border-right: 2px solid #fafafa;
+    }
+    100% { 
+        width: 480px;
+        visibility: visible;
+        border-right: transparent;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Rimuoviamo il vecchio stile del cursore */
+.line1::after, .line2::after {
+    display: none;
+}
+
+/* Aggiungiamo l'animazione del cursore direttamente nelle righe */
+@keyframes cursor-blink {
+    0%, 100% { border-right: 2px solid #fafafa; }
+    50% { border-right: 2px solid transparent; }
 }
 
 main {
