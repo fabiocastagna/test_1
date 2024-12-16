@@ -1,18 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sketch</title>
-
-    <link rel="stylesheet" type="text/css" href="style.css">
-
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-  </head>
-
-  <body>
-    <script src="sketch.js"></script>
-  </body>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="JAVA/config.js"></script>
+  <script src="JAVA/regionText.js"></script>
+  <script src="JAVA/AnimationManager.js"></script>
+  <script src="JAVA/Esagono.js"></script>
+  <script src="JAVA/EsagonoManager.js"></script>
+  <script src="JAVA/MappaManager.js"></script>
+  <script src="JAVA/TestoManager.js"></script>
+  <script src="JAVA/SvgManager.js"></script>
+  <script src="JAVA/IntroManager.js"></script>
+  <script src="sketch.js"></script>
+</head>
+<body>
+  <div id="intro-page">
+    <div class="intro-content">
+      <p id="prison-stats"></p>
+      <button id="start-button">Scopri di più</button>
+    </div>
+  </div>
+  <main></main>
+</body>
 </html>

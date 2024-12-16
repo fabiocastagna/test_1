@@ -1,8 +1,62 @@
 html, body {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
 }
 
-canvas {
-  display: block;
+#intro-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.intro-content {
+    text-align: center;
+    max-width: 800px;
+    padding: 20px;
+}
+
+#prison-stats {
+    font-size: 24px;
+    line-height: 1.5;
+    margin-bottom: 40px;
+}
+
+#start-button {
+    background-color: black;
+    border: 2px solid white;
+    color: white;
+    padding: 15px 40px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+#start-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+#start-button:active {
+    transform: scale(0.98);
+}
+
+main {
+    display: none;
 }

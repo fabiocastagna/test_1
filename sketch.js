@@ -1,53 +1,47 @@
-let hexagonSize;
-let titleText = "Titolo";
-let displayedText = "";
-let lastTypewriterUpdate = 0;
-let typewriterSpeed = 100; // milliseconds per character
+let mappaManager;
+let svgManager;
+let animationManager;
+let tabella;
+
+function preload() {
+  tabella = loadTable('database/coordinate.csv', 'csv', 'header');
+}
 
 function setup() {
+  console.log('Setup iniziato');
   createCanvas(windowWidth, windowHeight);
-  hexagonSize = min(width, height) / 4;
   
-  textAlign(CENTER, CENTER);
-  textSize(50);
+  animationManager = new AnimationManager();
+  mappaManager = new MappaManager(animationManager);
+  mappaManager.caricaDati(tabella);
+  svgManager = new SvgManager();
+  console.log('Setup completato');
 }
 
 function draw() {
-  background(30);
+  background(CONFIG.colori.sfondo);
   
-  updateTypewriter();
-  noStroke();
-  fill(250);
-  text(displayedText, width / 2, height * 0.4 - hexagonSize - 40);
-  
-  fill(150);
-  stroke(50)
-  strokeWeight(5);
-  drawHexagon(width / 2, height / 2, hexagonSize);
-}
-
-function drawHexagon(x, y, size) {
-  beginShape();
-  for (let i = 0; i < 6; i++) {
-    // per mettere la base dell'esagono in verticale:
-    let angle = TWO_PI / 6 * i - TWO_PI / 4;
-    let vx = x + cos(angle) * size;
-    let vy = y + sin(angle) * size;
-    vertex(vx, vy);
+  if (!mappaManager || !svgManager) {
+    console.error('Manager non inizializzati');
+    return;
   }
-  endShape(CLOSE);
+  
+  mappaManager.aggiorna();
+  mappaManager.esagoni.forEach(esagono => esagono.disegna());
+  
+  // Disegna l'SVG se c'è un esagono ingrandito
+  if (mappaManager.esagonoManager.esagonoIngrandito) {
+    svgManager.display(mappaManager.esagonoManager.esagonoIngrandito);
+  }
 }
 
-function updateTypewriter() {
-  if (millis() - lastTypewriterUpdate > typewriterSpeed) {
-    if (displayedText.length < titleText.length) {
-      displayedText += titleText[displayedText.length];
-      lastTypewriterUpdate = millis();
-    }
+function mousePressed() {
+  if (mappaManager) {
+    mappaManager.gestisciClick(mouseX, mouseY);
   }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  hexagonSize = min(width, height) / 4;
+  setup();
 }
