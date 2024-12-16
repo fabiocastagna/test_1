@@ -7,13 +7,11 @@ class SvgManager {
 
     loadSVG() {
         loadImage('svg/Tavola disegno 1.svg', 
-            // Success callback
             (img) => {
                 console.log('SVG caricato con successo');
                 this.svg = img;
                 this.isLoaded = true;
             },
-            // Error callback
             (err) => {
                 console.error('Errore nel caricamento dell\'SVG:', err);
             }
@@ -22,7 +20,6 @@ class SvgManager {
 
     display(esagonoIngrandito) {
         if (!this.isLoaded || !esagonoIngrandito) {
-            console.log('SVG non ancora caricato o nessun esagono ingrandito');
             return;
         }
 
@@ -38,3 +35,6 @@ class SvgManager {
         }
     }
 }
+
+// Aggiungi listener per il ridimensionamento
+window.addEventListener('resize', loadSVG);
