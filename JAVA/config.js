@@ -2,7 +2,7 @@ const CONFIG = {
     velocitaScrittura: 50,
     colori: {
       sfondo: "black",
-      esagonoBase: "green",
+      esagonoBase: "white",
       esagonoMedio: "yellow",
       esagonoAlto: "red"
     },

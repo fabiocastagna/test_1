@@ -26,12 +26,12 @@ class MappaManager {
       let mappaHeight = maxY - minY;
       let aspectRatio = mappaWidth / mappaHeight;
       
-      let marginHeight = height * CONFIG.margini.verticale;
+      let marginHeight = height * CONFIG.margini.verticale * 0.8;
       let scaleFactor = marginHeight / mappaHeight;
       let scaledWidth = marginHeight * aspectRatio;
       
       let offsetX = (width - scaledWidth) / 2;
-      let offsetY = height * CONFIG.margini.orizzontale;
+      let offsetY = (height - marginHeight) / 2;
       
       let raggio = marginHeight / 45;
       
