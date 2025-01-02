@@ -1,142 +1,55 @@
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-Regular.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aeion';
+    src: url('../font/AeionMono-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+}
+
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    background-color: #000000;
-    color: #fafafa;
-    font-family: 'Space Grotesk', sans-serif;
-}
-
-#intro-page {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.intro-content {
-    text-align: center;
-}
-
-/* Stili per l'effetto macchina da scrivere */
-.line1, .line2 {
+  }
+  
+  canvas {
     display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    font-size: 32px;
-    line-height: 1.6;
-    position: relative;
-    width: 0;
-    margin: 0 auto;
-}
-
-.line1 {
-    margin-bottom: 10px;
-    animation: 
-        typewriter 2.5s steps(30, end) forwards,
-        cursor-blink 0.8s steps(1) infinite;
-    animation-iteration-count: 1, 4;
-}
-
-.line2-container {
-    width: 480px;
-    margin: 0 auto;
-    text-align: left;
-    position: relative;
-}
-
-.line2 {
-    animation: 
-        typewriter 2.5s 3.5s steps(30, end) forwards,
-        cursor-blink 0.8s steps(1) infinite 3.5s;
-    animation-iteration-count: 1, 4;
-    visibility: hidden;
-    display: inline-block;
-    margin: 0;
-}
-
-/* Numeri in rosso */
-.number {
-    color: #ff4444;
-}
-
-/* Solo per il primo numero (189) */
-.number.bold {
-    color: #fafafa;
-}
-
-/* Bottone */
-#start-button {
-    background-color: transparent;
-    border: 1.5px solid rgba(255, 255, 255, 0.8);
-    color: #fafafa;
-    padding: 18px 48px;
+  }
+  .start-button {
     font-size: 16px;
+    padding: 10px 20px;
     cursor: pointer;
-    border-radius: 30px;
-    text-transform: uppercase;
-    opacity: 0;
-    animation: fadeIn 0.5s ease forwards;
-    animation-delay: 6s;
-}
-
-#start-button:hover {
-    transform: scale(1.1);
-}
-
-/* Animazioni */
-@keyframes typewriter {
-    0% { 
-        width: 0;
-        visibility: visible;
-        border-right: 2px solid #fafafa;
-    }
-    99% {
-        border-right: 2px solid #fafafa;
-    }
-    100% { 
-        width: 480px;
-        visibility: visible;
-        border-right: transparent;
-    }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Rimuoviamo il vecchio stile del cursore */
-.line1::after, .line2::after {
-    display: none;
-}
-
-/* Aggiungiamo l'animazione del cursore direttamente nelle righe */
-@keyframes cursor-blink {
-    0%, 100% { border-right: 2px solid #fafafa; }
-    50% { border-right: 2px solid transparent; }
-}
-
-main {
-    display: none;
-}
-
-::-webkit-scrollbar {
-    display: none;
-}
-
-* {
-    scrollbar-width: none;
-}
-
-/* Aggiungi queste proprietà dove gestisci gli SVG */
-svg {
-    shape-rendering: geometricPrecision;
-    text-rendering: geometricPrecision;
-    image-rendering: optimizeQuality;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+  }
