@@ -17,11 +17,18 @@ class GestoreTesto {
         this.inTransizioneCarcere = false;
         this.tempoTransizione = 0;
         this.tempoTransizioneCarcere = 0;
-        this.DURATA_TRANSIZIONE = 500;
+        this.DURATA_TRANSIZIONE = 150;
+        this.TOLLERANZA_TRANSIZIONE = 0.99;
         this.regioneCliccata = false;
         this.carcereCliccato = false;
         this.cancellazioneCarcere = false;
         this.VELOCITA_TESTO = 2;
+        this.testoInUscita = "";
+        this.inRimozione = false;
+        this.carcereInUscita = "";
+        this.inRimozioneCarcere = false;
+        this.ultimaTransizioneCompletata = 0;
+        this.INTERVALLO_MINIMO_TRANSIZIONI = 50;
     }
 
     caricaFont() {
@@ -65,13 +72,18 @@ class GestoreTesto {
     aggiornaTesto(regioneSelezionata, esagonoSelezionato) {
         if (!this.datiCarceri || !this.esagoni) return;
 
+        const tempoCorrente = millis();
+        if (tempoCorrente - this.ultimaTransizioneCompletata < this.INTERVALLO_MINIMO_TRANSIZIONI) {
+            return;
+        }
+
         let nuovoTesto = "";
         let nuovoNomeCarcere = "";
         let cambioTesto = false;
         
         if (regioneSelezionata) {
             nuovoTesto = regioneSelezionata;
-            cambioTesto = regioneSelezionata !== this.ultimaRegione;
+            cambioTesto = regioneSelezionata !== this.ultimaRegione || this.testoCorrente === "";
 
             if (esagonoSelezionato) {
                 if (!this.regioneCliccata) {
@@ -116,57 +128,107 @@ class GestoreTesto {
 
             this.ultimaRegione = regioneSelezionata;
         } else {
+            cambioTesto = this.testoCorrente !== "";
             nuovoTesto = "";
             nuovoNomeCarcere = "";
-            cambioTesto = this.testoCorrente !== "";
             this.ultimaRegione = null;
             this.ultimoEsagono = null;
             this.regioneCliccata = false;
             this.carcereCliccato = false;
         }
 
-        if (!this.regioneCliccata && cambioTesto) {
-            this.testoTarget = nuovoTesto;
-            this.inTransizione = true;
-            this.tempoTransizione = 0;
+        if (cambioTesto) {
+            if (this.testoCorrente !== nuovoTesto) {
+                if (this.testoCorrente && !this.inRimozione) {
+                    this.testoInUscita = this.testoCorrente;
+                    this.inRimozione = true;
+                    this.inTransizione = false;
+                    this.tempoTransizione = 0;
+                } else if (!this.inTransizione && (!this.inRimozione || this.testoCorrente === "")) {
+                    this.testoTarget = nuovoTesto;
+                    this.inTransizione = true;
+                    this.inRimozione = false;
+                    this.tempoTransizione = 0;
+                }
+            }
+        }
+
+        if (this.inRimozione) {
+            this.tempoTransizione += deltaTime;
+            const progresso = Math.min(this.tempoTransizione / this.DURATA_TRANSIZIONE, 1);
+            
+            if (progresso >= this.TOLLERANZA_TRANSIZIONE) {
+                this.inRimozione = false;
+                this.testoCorrente = "";
+                this.testoInUscita = "";
+                this.tempoTransizione = 0;
+                
+                if (nuovoTesto) {
+                    this.testoTarget = nuovoTesto;
+                    this.inTransizione = true;
+                }
+                
+                this.ultimaTransizioneCompletata = tempoCorrente;
+            } else {
+                const lunghezzaOriginale = this.testoInUscita.length;
+                const lunghezzaCorrente = Math.floor(lunghezzaOriginale * progresso);
+                this.testoCorrente = this.testoInUscita.substring(0, lunghezzaOriginale - lunghezzaCorrente);
+            }
+        } else if (this.inTransizione) {
+            this.tempoTransizione += deltaTime;
+            const progresso = Math.min(this.tempoTransizione / this.DURATA_TRANSIZIONE, 1);
+            
+            if (progresso >= this.TOLLERANZA_TRANSIZIONE) {
+                this.inTransizione = false;
+                this.testoCorrente = this.testoTarget;
+                this.tempoTransizione = 0;
+                this.ultimaTransizioneCompletata = tempoCorrente;
+            } else {
+                const lunghezzaTarget = this.testoTarget.length;
+                const lunghezzaCorrente = Math.floor(lunghezzaTarget * progresso);
+                this.testoCorrente = this.testoTarget.substring(0, lunghezzaCorrente);
+            }
         }
 
         if (nuovoNomeCarcere !== this.nomeCarcereTarget) {
-            this.nomeCarcereTarget = nuovoNomeCarcere;
-            this.inTransizioneCarcere = true;
-            this.tempoTransizioneCarcere = 0;
-        }
-
-        if (this.inTransizione) {
-            this.tempoTransizione += deltaTime;
-            const progresso = this.tempoTransizione / this.DURATA_TRANSIZIONE;
-            const lunghezzaTarget = this.testoTarget.length;
-            const lunghezzaCorrente = Math.floor(lunghezzaTarget * progresso);
-            this.testoCorrente = this.testoTarget.substring(0, lunghezzaCorrente);
-
-            if (progresso >= 1) {
-                this.inTransizione = false;
+            if (this.nomeCarcereCorrente && this.nomeCarcereCorrente !== "" && !this.inRimozioneCarcere) {
+                this.carcereInUscita = this.nomeCarcereCorrente;
+                this.inRimozioneCarcere = true;
+                this.tempoTransizioneCarcere = 0;
+            } else if (!this.nomeCarcereCorrente || this.nomeCarcereCorrente === "") {
+                this.nomeCarcereTarget = nuovoNomeCarcere;
+                this.inTransizioneCarcere = true;
+                this.tempoTransizioneCarcere = 0;
             }
         }
 
-        if (this.inTransizioneCarcere) {
+        if (this.inRimozioneCarcere) {
             this.tempoTransizioneCarcere += deltaTime;
-            const progresso = this.tempoTransizioneCarcere / this.DURATA_TRANSIZIONE;
-            
-            if (this.nomeCarcereTarget === "") {
-                const lunghezzaCorrente = Math.floor(this.nomeCarcereCorrente.length * (1 - progresso));
-                this.nomeCarcereCorrente = this.nomeCarcereCorrente.substring(0, lunghezzaCorrente);
-            } else {
-                const lunghezzaTarget = this.nomeCarcereTarget.length;
-                const lunghezzaCorrente = Math.floor(lunghezzaTarget * progresso);
-                this.nomeCarcereCorrente = this.nomeCarcereTarget.substring(0, lunghezzaCorrente);
-            }
+            const progresso = Math.min(this.tempoTransizioneCarcere / this.DURATA_TRANSIZIONE, 1);
+            const lunghezzaOriginale = this.carcereInUscita.length;
+            const lunghezzaCorrente = Math.floor(lunghezzaOriginale * (1 - progresso));
+            this.nomeCarcereCorrente = this.carcereInUscita.substring(0, lunghezzaCorrente);
 
-            if (progresso >= 1) {
-                this.inTransizioneCarcere = false;
-                if (this.nomeCarcereTarget === "") {
-                    this.nomeCarcereCorrente = "";
+            if (progresso >= this.TOLLERANZA_TRANSIZIONE) {
+                this.inRimozioneCarcere = false;
+                this.nomeCarcereCorrente = "";
+                this.carcereInUscita = "";
+                this.tempoTransizioneCarcere = 0;
+                if (this.nomeCarcereTarget) {
+                    this.inTransizioneCarcere = true;
                 }
+            }
+        } else if (this.inTransizioneCarcere) {
+            this.tempoTransizioneCarcere += deltaTime;
+            const progresso = Math.min(this.tempoTransizioneCarcere / this.DURATA_TRANSIZIONE, 1);
+            const lunghezzaTarget = this.nomeCarcereTarget.length;
+            const lunghezzaCorrente = Math.floor(lunghezzaTarget * progresso);
+            this.nomeCarcereCorrente = this.nomeCarcereTarget.substring(0, lunghezzaCorrente);
+
+            if (progresso >= this.TOLLERANZA_TRANSIZIONE) {
+                this.inTransizioneCarcere = false;
+                this.nomeCarcereCorrente = this.nomeCarcereTarget;
+                this.tempoTransizioneCarcere = 0;
             }
         }
     }
