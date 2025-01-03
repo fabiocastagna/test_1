@@ -73,9 +73,8 @@ class Animazione {
     this.aggiorna();
     push();
     translate(width / 2, height / 2);
-    drawingContext.clip();
     rotate(PI / 2);
-
+    
     fill(0);
     noStroke();
     beginShape();
@@ -86,16 +85,8 @@ class Animazione {
     }
     endShape(CLOSE);
 
-    drawingContext.filter = `blur(${this.blurAmount}px)`;
-    
-    let ellipseSize = this.esagonoInterno.size * 0.3;
-    let offsetX = -this.esagonoInterno.size * 0.3;  
-    let offsetY = -this.esagonoInterno.size * 0.3;
-    
     fill(this.currentColor);
-    ellipse(offsetX, offsetY, ellipseSize, ellipseSize);
-
-    drawingContext.filter = 'none';
+    
     pop();
   }
 }

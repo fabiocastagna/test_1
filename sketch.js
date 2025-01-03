@@ -2,51 +2,68 @@ let gestoreMappa;
 let gestoreSvg;
 let gestoreAnimazioni;
 let tabella;
+let caricamentoDatiCompletato = false;
 
 function preload() {
-  tabella = loadTable('database/coordinate.csv', 'csv', 'header');
+  try {
+    tabella = loadTable('database/coordinate.csv', 'csv', 'header');
+  } catch (error) {
+    console.error('Errore nel caricamento dei dati:', error);
+  }
 }
 
 function setup() {
-  console.log('Setup iniziato');
   createCanvas(windowWidth, windowHeight);
-  
-  gestoreAnimazioni = new GestoreAnimazioni();
-  gestoreMappa = new GestoreMappa(gestoreAnimazioni);
-  gestoreMappa.caricaDati(tabella);
-  gestoreSvg = new GestoreSvg();
-  console.log('Setup completato');
+  inizializzaGestori();
+}
+
+function inizializzaGestori() {
+  try {
+    gestoreAnimazioni = new GestoreAnimazioni();
+    gestoreMappa = new GestoreMappa(gestoreAnimazioni);
+    if (tabella) {
+      gestoreMappa.caricaDati(tabella);
+      caricamentoDatiCompletato = true;
+    }
+    gestoreSvg = new GestoreSvg();
+  } catch (error) {
+    console.error('Errore nell\'inizializzazione dei gestori:', error);
+    caricamentoDatiCompletato = false;
+  }
 }
 
 function draw() {
+  if (!caricamentoDatiCompletato) return;
+  
   background(CONFIGURAZIONE.colori.sfondo);
   
-  if (!gestoreMappa || !gestoreSvg) {
-    console.error('Gestori non inizializzati');
-    return;
-  }
+  gestoreMappa?.aggiorna();
+  gestoreMappa?.disegna();
   
-  gestoreMappa.aggiorna();
-  gestoreMappa.disegna();
-  
-  if (gestoreMappa.gestoreEsagoni.esagonoIngrandito) {
-    gestoreSvg.visualizza(gestoreMappa.gestoreEsagoni.esagonoIngrandito);
-    gestoreMappa.gestoreEsagoni.aggiornaIngrandimento();
+  const esagonoIngrandito = gestoreMappa?.gestoreEsagoni?.esagonoIngrandito;
+  if (esagonoIngrandito) {
+    gestoreSvg?.visualizza(esagonoIngrandito);
+    gestoreMappa?.gestoreEsagoni?.aggiornaIngrandimento();
   }
 }
 
 function mousePressed() {
-  if (gestoreMappa) {
-    gestoreMappa.gestisciClick(mouseX, mouseY);
-  }
+  gestoreMappa?.gestisciClick(mouseX, mouseY);
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  
-  // Reinizializza i gestori con le nuove dimensioni
-  gestoreAnimazioni = new GestoreAnimazioni();
-  gestoreMappa = new GestoreMappa(gestoreAnimazioni);
-  gestoreMappa.caricaDati(tabella);
-  gestoreSvg = new GestoreSvg();
+  if (gestoreMappa) {
+    gestoreMappa.ridimensiona(windowWidth, windowHeight);
+  }
+  if (gestoreSvg) {
+    gestoreSvg.ridimensiona(windowWidth, windowHeight);
+  }
+}
+
+function disegnaEsagonoNero(esagono) {
+  push();
+  fill(0);
+  esagono.disegna();
+  pop();
 }

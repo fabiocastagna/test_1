@@ -7,6 +7,7 @@ class GestoreMappa {
       this.gestoreEsagoni = new GestoreEsagoni(this);
       this.gestoreTesto = new GestoreTesto(new GestoreAnimazioni());
       this.CONFIG = CONFIGURAZIONE;
+      this.esagonoCliccato = null;
     }
   
     caricaDati(tabella) {
@@ -99,10 +100,25 @@ class GestoreMappa {
             this.aggiornaStatoEsagono(esagono);
         }
 
-        // Aggiorna il testo
+        // Trova l'esagono sotto il cursore per la regione selezionata
+        let esagonoHover = null;
+        if (this.regioneSelezionata) {
+            let distanzaMinima = Infinity;
+            for (let esagono of this.esagoni) {
+                if (esagono.regione === this.regioneSelezionata) {
+                    let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+                    let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier * 1.5;
+                    if (distanza < raggioEffettivo && distanza < distanzaMinima) {
+                        distanzaMinima = distanza;
+                        esagonoHover = esagono;
+                    }
+                }
+            }
+        }
+
         this.gestoreTesto.aggiornaTesto(
             this.regioneSelezionata || this.regioneHover,
-            this.gestoreEsagoni.esagonoIngrandito
+            this.esagonoCliccato || esagonoHover
         );
     }
   
@@ -152,6 +168,7 @@ class GestoreMappa {
                     // Seleziona nuova regione e spostala al centro
                     this.regioneSelezionata = esagono.regione;
                     this.italiaRimpicciolita = true;
+                    this.esagonoCliccato = null; // Reset dell'esagono cliccato
                     
                     // Sposta la regione selezionata al centro
                     let regioneEsagoni = this.esagoni.filter(e => e.regione === this.regioneSelezionata);
@@ -211,6 +228,7 @@ class GestoreMappa {
                 });
                 this.regioneSelezionata = null;
                 this.italiaRimpicciolita = false;
+                this.esagonoCliccato = null; // Reset dell'esagono cliccato
                 return;
             }
 
@@ -221,6 +239,7 @@ class GestoreMappa {
                     let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier;
                     
                     if (distanza < raggioEffettivo * 1.5) {
+                        this.esagonoCliccato = esagono; // Salva l'esagono cliccato
                         this.gestoreEsagoni.gestisciClickEsagonoRegione(esagono);
                         return;
                     }

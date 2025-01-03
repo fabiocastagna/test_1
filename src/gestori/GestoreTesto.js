@@ -14,15 +14,18 @@ class GestoreTesto {
         this.ultimaRegione = null;
         this.ultimoEsagono = null;
         this.inTransizione = false;
+        this.inTransizioneCarcere = false;
         this.tempoTransizione = 0;
+        this.tempoTransizioneCarcere = 0;
         this.DURATA_TRANSIZIONE = 500;
         this.regioneCliccata = false;
+        this.carcereCliccato = false;
         this.cancellazioneCarcere = false;
         this.VELOCITA_TESTO = 2;
     }
 
     caricaFont() {
-        loadFont('FONT/AeionMono-Regular.ttf', font => {
+        loadFont('FONT/AeionMono-SemiBold.ttf', font => {
             this.font = font;
             console.log('Font caricato con successo');
         });
@@ -42,13 +45,13 @@ class GestoreTesto {
             righe.forEach(riga => {
                 if (!riga.trim()) return;
                 const colonne = riga.split(',');
-                const citta = colonne[0];
+                const carcere = colonne[0];
                 const regione = colonne[1];
                 const hexId = colonne[27];
                 
                 if (!this.datiCarceri.has(hexId)) {
                     this.datiCarceri.set(hexId, {
-                        citta: citta,
+                        carcere: carcere,
                         regione: regione
                     });
                 }
@@ -66,58 +69,49 @@ class GestoreTesto {
         let nuovoNomeCarcere = "";
         let cambioTesto = false;
         
-        // Controllo se c'è un esagono ingrandito
-        let esagonoIngrandito = false;
-        this.esagoni.forEach(esagono => {
-            if (esagono.scaleMultiplier > 1) {
-                esagonoIngrandito = true;
-            }
-        });
-
         if (regioneSelezionata) {
-            if (esagonoSelezionato || this.regioneCliccata) {
-                if (esagonoSelezionato && !this.regioneCliccata) {
+            nuovoTesto = regioneSelezionata;
+            cambioTesto = regioneSelezionata !== this.ultimaRegione;
+
+            if (esagonoSelezionato) {
+                if (!this.regioneCliccata) {
                     this.regioneCliccata = true;
                 }
                 
-                nuovoTesto = regioneSelezionata;
-                this.testoCorrente = regioneSelezionata;
-
+                if (esagonoSelezionato !== this.ultimoEsagono) {
+                    const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
+                    const datiCarcere = this.datiCarceri.get(hexId);
+                    if (datiCarcere) {
+                        nuovoNomeCarcere = datiCarcere.carcere;
+                        this.carcereCliccato = true;
+                    }
+                    this.ultimoEsagono = esagonoSelezionato;
+                } else if (this.carcereCliccato) {
+                    nuovoNomeCarcere = this.nomeCarcereTarget;
+                }
+            } 
+            else if (this.regioneCliccata && !this.carcereCliccato) {
                 let esagonoHover = null;
                 let distanzaMinima = Infinity;
 
                 this.esagoni.forEach(esagono => {
                     if (esagono.regione === regioneSelezionata) {
-                        if (esagono.scaleMultiplier > 1) {
-                            const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagono.id}`;
-                            const datiCarcere = this.datiCarceri.get(hexId);
-                            if (datiCarcere) {
-                                nuovoNomeCarcere = datiCarcere.citta;
-                            }
-                            return;
-                        }
-                        
-                        // Se c'è già un esagono ingrandito, non mostrare i nomi al passaggio del mouse
-                        if (!esagonoIngrandito) {
-                            const distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-                            if (distanza < esagono.raggio * 2 && distanza < distanzaMinima) {
-                                distanzaMinima = distanza;
-                                esagonoHover = esagono;
-                            }
+                        const distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+                        if (distanza < esagono.raggio * 1.5 && distanza < distanzaMinima) {
+                            distanzaMinima = distanza;
+                            esagonoHover = esagono;
                         }
                     }
                 });
 
-                if (esagonoHover && !esagonoIngrandito) {
+                if (esagonoHover) {
                     const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoHover.id}`;
                     const datiCarcere = this.datiCarceri.get(hexId);
                     if (datiCarcere) {
-                        nuovoNomeCarcere = datiCarcere.citta;
+                        nuovoNomeCarcere = datiCarcere.carcere;
+                        this.carcereCliccato = true;
                     }
                 }
-            } else {
-                nuovoTesto = regioneSelezionata;
-                cambioTesto = regioneSelezionata !== this.ultimaRegione;
             }
 
             this.ultimaRegione = regioneSelezionata;
@@ -128,14 +122,19 @@ class GestoreTesto {
             this.ultimaRegione = null;
             this.ultimoEsagono = null;
             this.regioneCliccata = false;
-            this.nomeCarcereCorrente = "";
-            this.nomeCarcereTarget = "";
+            this.carcereCliccato = false;
         }
 
         if (!this.regioneCliccata && cambioTesto) {
             this.testoTarget = nuovoTesto;
             this.inTransizione = true;
             this.tempoTransizione = 0;
+        }
+
+        if (nuovoNomeCarcere !== this.nomeCarcereTarget) {
+            this.nomeCarcereTarget = nuovoNomeCarcere;
+            this.inTransizioneCarcere = true;
+            this.tempoTransizioneCarcere = 0;
         }
 
         if (this.inTransizione) {
@@ -150,33 +149,24 @@ class GestoreTesto {
             }
         }
 
-        if (this.nomeCarcereTarget !== nuovoNomeCarcere) {
-            if (this.nomeCarcereCorrente && nuovoNomeCarcere) {
-                this.cancellazioneCarcere = true;
+        if (this.inTransizioneCarcere) {
+            this.tempoTransizioneCarcere += deltaTime;
+            const progresso = this.tempoTransizioneCarcere / this.DURATA_TRANSIZIONE;
+            
+            if (this.nomeCarcereTarget === "") {
+                const lunghezzaCorrente = Math.floor(this.nomeCarcereCorrente.length * (1 - progresso));
+                this.nomeCarcereCorrente = this.nomeCarcereCorrente.substring(0, lunghezzaCorrente);
             } else {
-                this.nomeCarcereTarget = nuovoNomeCarcere;
-                if (!this.nomeCarcereCorrente) {
+                const lunghezzaTarget = this.nomeCarcereTarget.length;
+                const lunghezzaCorrente = Math.floor(lunghezzaTarget * progresso);
+                this.nomeCarcereCorrente = this.nomeCarcereTarget.substring(0, lunghezzaCorrente);
+            }
+
+            if (progresso >= 1) {
+                this.inTransizioneCarcere = false;
+                if (this.nomeCarcereTarget === "") {
                     this.nomeCarcereCorrente = "";
                 }
-            }
-        }
-
-        if (this.cancellazioneCarcere) {
-            if (this.nomeCarcereCorrente.length > 0) {
-                this.nomeCarcereCorrente = this.nomeCarcereCorrente.slice(0, -this.VELOCITA_TESTO);
-            } else {
-                this.cancellazioneCarcere = false;
-                this.nomeCarcereTarget = nuovoNomeCarcere;
-            }
-        } else if (this.nomeCarcereCorrente !== this.nomeCarcereTarget) {
-            if (this.nomeCarcereCorrente.length < this.nomeCarcereTarget.length) {
-                const nuovaLunghezza = Math.min(
-                    this.nomeCarcereCorrente.length + this.VELOCITA_TESTO,
-                    this.nomeCarcereTarget.length
-                );
-                this.nomeCarcereCorrente = this.nomeCarcereTarget.substring(0, nuovaLunghezza);
-            } else if (this.nomeCarcereCorrente.length > this.nomeCarcereTarget.length) {
-                this.nomeCarcereCorrente = this.nomeCarcereCorrente.slice(0, -this.VELOCITA_TESTO);
             }
         }
     }
@@ -195,7 +185,7 @@ class GestoreTesto {
         fill(255);
         text(this.testoCorrente, xPos, yPos);
         
-        if (this.regioneCliccata && this.nomeCarcereCorrente) {
+        if (this.nomeCarcereCorrente) {
             textSize(24);
             fill(200);
             text(this.nomeCarcereCorrente, xPos, yPos + 40);

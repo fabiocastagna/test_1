@@ -29,6 +29,27 @@ class Esagono {
       translate(this.x, this.y);
       rotate(this.rotazione);
       
+      // Disegna l'esagono rosso sotto
+      fill('red');
+      beginShape();
+      for (let angolo = 0; angolo < 6; angolo++) {
+        let verticeX = this.raggio * this.scaleMultiplier * cos(angolo * PI / 3);
+        let verticeY = this.raggio * this.scaleMultiplier * sin(angolo * PI / 3);
+        vertex(verticeX, verticeY);
+      }
+      endShape(CLOSE);
+      
+      // Disegna l'esagono nero sopra quello rosso
+      fill('black');
+      beginShape();
+      for (let angolo = 0; angolo < 6; angolo++) {
+        let verticeX = this.raggio * this.scaleMultiplier * cos(angolo * PI / 3);
+        let verticeY = this.raggio * this.scaleMultiplier * sin(angolo * PI / 3);
+        vertex(verticeX, verticeY);
+      }
+      endShape(CLOSE);
+      
+      // Disegna l'esagono sopra
       let strokeColor = lerpColor(color("grey"), color("white"), this.hoverState);
       let strokeW = lerp(0.5, 2, this.hoverState);
       stroke(strokeColor);
@@ -42,7 +63,7 @@ class Esagono {
         lerp(0, 250, this.hoverState)
       );
       
-      fill(0);
+      noFill(); // Rimuove il riempimento nero
       beginShape();
       for (let angolo = 0; angolo < 6; angolo++) {
         let verticeX = this.raggio * this.scaleMultiplier * cos(angolo * PI / 3);

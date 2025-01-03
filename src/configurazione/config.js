@@ -1,5 +1,4 @@
 const CONFIGURAZIONE = {
-    velocitaScrittura: 50,
     colori: {
       sfondo: "black",
       esagonoBase: "white",

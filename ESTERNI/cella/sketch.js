@@ -1,8 +1,3 @@
-function loadSVG(path, callback) {
-  loadImage(path, callback);
-}
-
-let svgManager;
 let animazione;
 let tabella;
 let esagono;
@@ -14,9 +9,8 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  esagono = new Esagono(); // Assuming Esagono is defined elsewhere
+  esagono = new Esagono();
   animazione = new Animazione();
-  svgManager = new SvgManager();
   
   menuCarceri = createSelect();
   menuCarceri.position(10, 10);
@@ -42,15 +36,14 @@ function careereScelto() {
 }
 
 function draw() {
-  background("black");
+  background(220);
   
   // Draw hexagon animation
-  esagono.aggiornaPosizione(); // Assuming this updates Esagono's position
-  esagono.disegna(); // Assuming this draws the hexagon
+  esagono.aggiornaPosizione();
+  esagono.disegna();
   
-  // Draw animation and overlay SVG
+  // Draw animation
   animazione.disegna();
-  svgManager.disegna(animazione.esagonoInterno);
 }
 
 function windowResized() {
