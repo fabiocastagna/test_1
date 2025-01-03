@@ -1,6 +1,6 @@
-let mappaManager;
-let svgManager;
-let animationManager;
+let gestoreMappa;
+let gestoreSvg;
+let gestoreAnimazioni;
 let tabella;
 
 function preload() {
@@ -11,37 +11,42 @@ function setup() {
   console.log('Setup iniziato');
   createCanvas(windowWidth, windowHeight);
   
-  animationManager = new AnimationManager();
-  mappaManager = new MappaManager(animationManager);
-  mappaManager.caricaDati(tabella);
-  svgManager = new SvgManager();
+  gestoreAnimazioni = new GestoreAnimazioni();
+  gestoreMappa = new GestoreMappa(gestoreAnimazioni);
+  gestoreMappa.caricaDati(tabella);
+  gestoreSvg = new GestoreSvg();
   console.log('Setup completato');
 }
 
 function draw() {
-  background(CONFIG.colori.sfondo);
+  background(CONFIGURAZIONE.colori.sfondo);
   
-  if (!mappaManager || !svgManager) {
-    console.error('Manager non inizializzati');
+  if (!gestoreMappa || !gestoreSvg) {
+    console.error('Gestori non inizializzati');
     return;
   }
   
-  mappaManager.aggiorna();
-  mappaManager.esagoni.forEach(esagono => esagono.disegna());
+  gestoreMappa.aggiorna();
+  gestoreMappa.disegna();
   
-  // Disegna l'SVG se c'è un esagono ingrandito
-  if (mappaManager.esagonoManager.esagonoIngrandito) {
-    svgManager.display(mappaManager.esagonoManager.esagonoIngrandito);
+  if (gestoreMappa.gestoreEsagoni.esagonoIngrandito) {
+    gestoreSvg.visualizza(gestoreMappa.gestoreEsagoni.esagonoIngrandito);
+    gestoreMappa.gestoreEsagoni.aggiornaIngrandimento();
   }
 }
 
 function mousePressed() {
-  if (mappaManager) {
-    mappaManager.gestisciClick(mouseX, mouseY);
+  if (gestoreMappa) {
+    gestoreMappa.gestisciClick(mouseX, mouseY);
   }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  setup();
+  
+  // Reinizializza i gestori con le nuove dimensioni
+  gestoreAnimazioni = new GestoreAnimazioni();
+  gestoreMappa = new GestoreMappa(gestoreAnimazioni);
+  gestoreMappa.caricaDati(tabella);
+  gestoreSvg = new GestoreSvg();
 }
