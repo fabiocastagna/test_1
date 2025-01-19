@@ -27,7 +27,7 @@ class GestoreEsagoni {
             this.posizioniOriginali.set(esagono, {
                 x: esagono.originalX,
                 y: esagono.originalY,
-                scala: esagono.scaleMultiplier
+                scala: esagono.targetScale
             });
         }
     }
@@ -37,7 +37,6 @@ class GestoreEsagoni {
         if (posOriginale) {
             esagono.targetX = posOriginale.x;
             esagono.targetY = posOriginale.y;
-            esagono.scaleMultiplier = posOriginale.scala;
             esagono.targetScale = posOriginale.scala;
         }
     }
@@ -58,7 +57,7 @@ class GestoreEsagoni {
             this.inizializzaPosizioniOriginali(hex);
             hex.targetX = hex.originalX * scala + offsetX;
             hex.targetY = hex.originalY * scala + height * 0.35;
-            hex.scaleMultiplier = scala;
+            hex.targetScale = scala;
         });
     }
 
@@ -68,13 +67,13 @@ class GestoreEsagoni {
             const offsetYFromCenter = hex.originalY - centro.y;
             hex.targetX = offsetX + offsetXFromCenter * scala;
             hex.targetY = height * 0.5 + offsetYFromCenter * scala;
-            hex.scaleMultiplier = scala;
+            hex.targetScale = scala;
             
             if (hex.dot) {
                 if (scala !== this.SCALA.NORMALE) {
-                    hex.dot.scaleMultiplier = 0;
+                    hex.dot.targetScale = 0;
                 } else {
-                    hex.dot.scaleMultiplier = 1;
+                    hex.dot.targetScale = 1;
                 }
             }
         });
@@ -92,7 +91,6 @@ class GestoreEsagoni {
             this.tempoInizioRiduzione = millis();
             esagonoIngrandito.targetScale = this.SCALA.NORMALE;
             
-            // Imposta l'opacità dell'SVG a 0
             gestoreSvg.impostaOpacita(0);
             
             setTimeout(() => {
@@ -105,7 +103,6 @@ class GestoreEsagoni {
                     const offsetY = hex.originalY - centro.y;
                     hex.targetX = width * 0.5 + offsetX * 1.5;
                     hex.targetY = height * 0.5 + offsetY * 1.5;
-                    hex.scaleMultiplier = 1.5;
                     hex.targetScale = 1.5;
                 });
 
@@ -113,18 +110,17 @@ class GestoreEsagoni {
                 this.gestoreCella.aggiornaSovraffollamento(0, 0);
             }, this.DURATA_INGRANDIMENTO);
 
+            this.gestoreTesto.setCarceraRimpicciolito(true);
         } else {
             regioneEsagoni.forEach(hex => {
                 this.inizializzaPosizioniOriginali(hex);
                 if (hex === esagonoCliccato) {
                     hex.targetX = width * 0.5;
                     hex.targetY = height * 0.5;
-                    hex.scaleMultiplier = 1.5;
                     hex.targetScale = 1.5;
                     this.esagonoIngrandito = hex;
                     this.tempoInizioAnimazione = millis();
                     
-                    // Prepara SVG per la transizione
                     gestoreSvg.impostaOpacita(0);
                     
                     setTimeout(() => {
@@ -132,7 +128,6 @@ class GestoreEsagoni {
                             hex.targetScale = this.SCALA.GRANDE;
                             this.inIngrandimento = true;
                             this.tempoInizioIngrandimento = millis();
-                            // Imposta l'opacità dell'SVG a 1
                             gestoreSvg.impostaOpacita(1);
                         }
                     }, 500);
@@ -148,6 +143,8 @@ class GestoreEsagoni {
             );
             
             this.spostaEsagoniItalia(this.SCALA.PICCOLA, this.OFFSET_ITALIA_X);
+
+            this.gestoreTesto.setCarceraRimpicciolito(false);
         }
     }
 
@@ -168,7 +165,6 @@ class GestoreEsagoni {
                 return d.properties ? d.properties.transform || "" : "";
             });
 
-        // ... resto del codice per gestire la visualizzazione dei dettagli ...
     }
 
     ripristinaVista() {
@@ -193,7 +189,6 @@ class GestoreEsagoni {
 
             if (progresso >= 1) {
                 this.inIngrandimento = false;
-                console.log('Ingrandimento completato');
             }
         }
         
@@ -210,7 +205,6 @@ class GestoreEsagoni {
 
             if (progresso >= 1) {
                 this.inRiduzione = false;
-                console.log('Riduzione completata');
             }
         }
     }
@@ -222,9 +216,5 @@ class GestoreEsagoni {
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
-    trovaSovraffollamento(esagono) {
-        // Implementa la logica per ottenere il sovraffollamento dal tuo dataset
-        // Questo è un esempio, adattalo al tuo dataset reale
-        return 150; // valore di esempio
-    }
+
 } 

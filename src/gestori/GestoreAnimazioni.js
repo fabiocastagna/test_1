@@ -1,11 +1,14 @@
 class GestoreAnimazioni {
     constructor() {
-        this.VELOCITA_ANIMAZIONE = 0.1;  // Velocità base delle animazioni
+        this.VELOCITA_ANIMAZIONE = 0.05;  // Velocità base delle animazioni
         this.VELOCITA_ANIMAZIONE_TESTO = 50;  // Velocità animazione testo (millisecondi)
         this.VELOCITA_ANIMAZIONE_SCALA = 0.05;  // Ridotto per un'animazione più fluida
-        this.FLUIDITA_SCALA = 0.03;      // Nuovo parametro per la fluidità
+        this.FLUIDITA_SCALA = 0.05;      // Nuovo parametro per la fluidità
         this.ultimoAggiornamento = 0;  // Aggiungi questa riga
         this.DURATA_TRANSIZIONE = 500; // 1 secondo per la transizione
+        this.VELOCITA_TESTO = 50;  // millisecondi tra ogni carattere
+        this.ultimoCarattereAggiunto = 0;
+        this.inCancellazione = false;
     }
 
     // Animazione posizione
@@ -46,22 +49,24 @@ class GestoreAnimazioni {
         });
     }
 
-    // Animazione testo
-    animaTesto(testoCorrente, testoTarget, tempoTrascorso) {
-        if (!testoTarget) return testoCorrente;  // Aggiungi questo controllo
-        
-        if (tempoTrascorso > this.VELOCITA_ANIMAZIONE_TESTO) {
-            if (testoCorrente.length < testoTarget.length) {
-                return testoTarget.substring(0, testoCorrente.length + 1);
-            }
-        }
-        return testoCorrente;
-    }
-
     // Funzione di easing cubico
     easeInOutCubic(t) {
         return t < 0.5 
             ? 4 * t * t * t 
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    // Nuovo metodo per l'animazione del testo
+    animaTesto(testoCorrente, testoTarget) {
+        const tempoCorrente = millis();
+        
+        // Aggiunta caratteri
+        if (testoCorrente.length < testoTarget.length) {
+            if (tempoCorrente - this.ultimoCarattereAggiunto > this.VELOCITA_TESTO) {
+                testoCorrente = testoTarget.substring(0, testoCorrente.length + 1);
+                this.ultimoCarattereAggiunto = tempoCorrente;
+            }
+        }
+        return testoCorrente;
     }
 } 

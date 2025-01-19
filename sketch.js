@@ -1,6 +1,7 @@
 let gestoreMappa;
 let gestoreSvg;
 let gestoreAnimazioni;
+let gestoreIntro;
 let tabella;
 let caricamentoDatiCompletato = false;
 
@@ -20,6 +21,7 @@ function setup() {
 function inizializzaGestori() {
   try {
     gestoreAnimazioni = new GestoreAnimazioni();
+    gestoreIntro = new GestoreIntro(gestoreAnimazioni);
     gestoreMappa = new GestoreMappa(gestoreAnimazioni);
     if (tabella) {
       gestoreMappa.caricaDati(tabella);
@@ -37,17 +39,28 @@ function draw() {
   
   background(CONFIGURAZIONE.colori.sfondo);
   
-  gestoreMappa?.aggiorna();
-  gestoreMappa?.disegna();
-  
-  const esagonoIngrandito = gestoreMappa?.gestoreEsagoni?.esagonoIngrandito;
-  if (esagonoIngrandito) {
-    gestoreSvg?.visualizza(esagonoIngrandito);
-    gestoreMappa?.gestoreEsagoni?.aggiornaIngrandimento();
+  if (gestoreIntro.attivo) {
+    gestoreIntro.aggiorna();
+    gestoreIntro.disegna();
+  } else {
+    gestoreMappa?.aggiorna();
+    gestoreMappa?.disegna();
+    
+    const esagonoIngrandito = gestoreMappa?.gestoreEsagoni?.esagonoIngrandito;
+    if (esagonoIngrandito) {
+      gestoreSvg?.visualizza(esagonoIngrandito);
+      gestoreMappa?.gestoreEsagoni?.aggiornaIngrandimento();
+    }
   }
 }
 
 function mousePressed() {
+  if (gestoreIntro.attivo) {
+    if (gestoreIntro.gestisciClick()) {
+      // Il click sul bottone è stato gestito
+      return;
+    }
+  }
   gestoreMappa?.gestisciClick(mouseX, mouseY);
 }
 

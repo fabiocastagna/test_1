@@ -1,77 +1,145 @@
 class GestoreIntro {
-    constructor() {
-        this.inizializzaElementi();
-        this.impostaEventListeners();
-        this.caricaEVisualizzaStatistiche();
+    constructor(gestoreAnimazioni) {
+        this.gestoreAnimazioni = gestoreAnimazioni;
+        this.font = loadFont('FONT/AeionMono-Bold.ttf');
+        this.attivo = true;
+        this.testoRiga1 = "In Italia ci sono x carceri";
+        this.testoRiga2 = "x di questi sono sovraffollati";
+        this.testoCorrente1 = "";
+        this.testoCorrente2 = "";
+        this.bottoneVisibile = false;
+        this.opacitaBottone = 0;
+        this.opacitaGenerale = 255;
+        this.opacitaItalia = 0;
+        this.inTransizione = false;
+        this.durataTransizione = 1000;
+        this.tempoInizioTransizione = 0;
+        this.bottoneHover = false;
+        this.larghezzaBottone = 140;
+        this.altezzaBottone = 45;
+        this.inCancellazione = false;
+        this.ultimaCancellazione = 0;
+        this.velocitaCancellazione = 20;
     }
 
-    inizializzaElementi() {
-        this.elementoStatistiche = document.getElementById('prison-stats');
-        this.pulsanteInizio = document.getElementById('start-button');
-        this.paginaIntro = document.getElementById('intro-page');
-        this.elementoPrincipale = document.querySelector('main');
-    }
+    aggiorna() {
+        if (!this.attivo && !this.inTransizione) return;
 
-    impostaEventListeners() {
-        this.pulsanteInizio.addEventListener('click', () => {
-            this.paginaIntro.style.display = 'none';
-            this.elementoPrincipale.style.display = 'block';
-        });
-    }
+        if (this.inTransizione) {
+            let tempoCorrente = millis();
+            
+            if (this.inCancellazione) {
+                if (tempoCorrente - this.ultimaCancellazione > this.velocitaCancellazione) {
+                    // Cancella prima il secondo testo
+                    if (this.testoCorrente2.length > 0) {
+                        this.testoCorrente2 = this.testoCorrente2.slice(0, -1);
+                    } 
+                    // Poi il primo testo
+                    else if (this.testoCorrente1.length > 0) {
+                        this.testoCorrente1 = this.testoCorrente1.slice(0, -1);
+                    }
+                    // Quando entrambi i testi sono vuoti, passa alla transizione dell'Italia
+                    else {
+                        this.inCancellazione = false;
+                        this.tempoInizioTransizione = tempoCorrente;
+                    }
+                    this.ultimaCancellazione = tempoCorrente;
+                }
+                return;
+            }
 
-    async caricaEVisualizzaStatistiche() {
-        try {
-            const dati = await this.ottieniDati();
-            const { totaleCarceri, carceriSovraffollate } = this.elaboraDati(dati);
-            this.visualizzaStatistiche(totaleCarceri, carceriSovraffollate);
-            this.impostaAnimazioni();
-        } catch (error) {
-            console.error('Errore nel caricamento dei dati:', error);
-            this.elementoStatistiche.textContent = 'Errore nel caricamento delle statistiche.';
+            let tempoTrascorso = tempoCorrente - this.tempoInizioTransizione;
+            let progressione = tempoTrascorso / this.durataTransizione;
+            
+            if (progressione >= 1) {
+                this.attivo = false;
+                this.inTransizione = false;
+                this.opacitaGenerale = 0;
+                this.opacitaItalia = 255;
+            } else {
+                let easeProgressione = this.easeInOutCubic(progressione);
+                this.opacitaGenerale = lerp(255, 0, easeProgressione);
+                this.opacitaItalia = lerp(0, 255, easeProgressione);
+            }
+            return;
+        }
+
+        this.testoCorrente1 = this.gestoreAnimazioni.animaTesto(
+            this.testoCorrente1,
+            this.testoRiga1
+        );
+
+        if (this.testoCorrente1 === this.testoRiga1) {
+            this.testoCorrente2 = this.gestoreAnimazioni.animaTesto(
+                this.testoCorrente2,
+                this.testoRiga2
+            );
+        }
+
+        if (this.testoCorrente2 === this.testoRiga2) {
+            this.bottoneVisibile = true;
+            this.opacitaBottone = lerp(this.opacitaBottone, 255, 0.1);
         }
     }
 
-    async ottieniDati() {
-        const risposta = await fetch('Database/Data_Comp.csv');
-        return await risposta.text();
+    disegna() {
+        if (!this.attivo && !this.inTransizione) return;
+
+        push();
+        textFont(this.font);
+        textAlign(CENTER, CENTER);
+        textSize(32);
+        fill(255, this.opacitaGenerale);
+        
+        // Disegna i testi
+        text(this.testoCorrente1, width/2, height/2 - 30);
+        text(this.testoCorrente2, width/2, height/2 + 30);
+
+        // Disegna il bottone
+        if (this.bottoneVisibile) {
+            // Effetto hover
+            let coloreBottone = this.bottoneHover ? 200 : 255;
+            fill(coloreBottone, min(this.opacitaBottone, this.opacitaGenerale));
+            rect(width/2 - this.larghezzaBottone/2, height/2 + 80, 
+                 this.larghezzaBottone, this.altezzaBottone, 8);
+            
+            fill(0, min(this.opacitaBottone, this.opacitaGenerale));
+            textSize(16);
+            text("scopri di più", width/2, height/2 + 100);
+        }
+        pop();
+
+        // Aggiorna stato hover
+        this.bottoneHover = this.isMouseOverButton();
     }
 
-    elaboraDati(dati) {
-        const righe = dati.split('\n').slice(1);
-        const totaleCarceri = righe.length;
-        const carceriSovraffollate = righe.filter(riga => {
-            const colonne = riga.split(',');
-            return parseFloat(colonne[11]) > 100;
-        }).length;
-        return { totaleCarceri, carceriSovraffollate };
+    isMouseOverButton() {
+        return (
+            this.bottoneVisibile &&
+            mouseX > width/2 - this.larghezzaBottone/2 && 
+            mouseX < width/2 + this.larghezzaBottone/2 &&
+            mouseY > height/2 + 80 && 
+            mouseY < height/2 + 80 + this.altezzaBottone
+        );
     }
 
-    visualizzaStatistiche(totaleCarceri, carceriSovraffollate) {
-        this.elementoStatistiche.innerHTML = `
-            <span class="line1">In Italia ci sono <span class="number bold">${totaleCarceri}</span> carceri</span>
-            <div class="line2-container">
-                <span class="line2"><span class="number">${carceriSovraffollate}</span> di questi sono sovraffollati.</span>
-            </div>
-        `;
+    gestisciClick() {
+        if (this.isMouseOverButton() && !this.inTransizione) {
+            this.inTransizione = true;
+            this.inCancellazione = true;
+            this.ultimaCancellazione = millis();
+            return true;
+        }
+        return false;
     }
 
-    impostaAnimazioni() {
-        setTimeout(() => {
-            const line1 = this.elementoStatistiche.querySelector('.line1');
-            line1.classList.add('typing-done');
-        }, 2500);
+    easeInOutCubic(t) {
+        return t < 0.5 
+            ? 4 * t * t * t 
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
 
-        setTimeout(() => {
-            const line2 = this.elementoStatistiche.querySelector('.line2');
-            line2.classList.add('visible');
-        }, 3500);
-
-        setTimeout(() => {
-            const line2 = this.elementoStatistiche.querySelector('.line2');
-            line2.classList.add('typing-done');
-            this.elementoStatistiche.classList.add('typing-done');
-        }, 6000);
+    getOpacitaItalia() {
+        return this.opacitaItalia;
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => new GestoreIntro()); 

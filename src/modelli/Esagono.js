@@ -51,7 +51,7 @@ class Esagono {
       
       // Disegna l'esagono sopra
       let strokeColor = lerpColor(color("grey"), color("white"), this.hoverState);
-      let strokeW = lerp(0.5, 2, this.hoverState);
+      let strokeW = lerp(2, 3, this.hoverState);
       stroke(strokeColor);
       strokeWeight(strokeW);
       
@@ -72,28 +72,27 @@ class Esagono {
       }
       endShape(CLOSE);
       
-      if (this.scaleMultiplier >= 1) {
-        strokeWeight(0);
-        
-        let targetOffset = -5 * this.scaleMultiplier;
-        let currentOffset = 0;
-        
-        if (this.scaleMultiplier > 1.5) {
-          let progress = map(this.scaleMultiplier, 1.5, 20.0, 0, 1);
-          currentOffset = lerp(0, targetOffset, progress);
-          let blurAmount = map(this.scaleMultiplier, 1.5, 20.0, 0, 80);
-          drawingContext.filter = `blur(${blurAmount}px)`;
-        }
-        
-        fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita));
-        ellipse(currentOffset, currentOffset, this.raggio * this.scaleMultiplier * 0.5);
-        
-        fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita * 0.5));
-        ellipse(currentOffset, currentOffset, this.raggio * this.scaleMultiplier * 0.8);
-        
-        if (this.scaleMultiplier > 1.5) {
-          drawingContext.filter = 'none';
-        }
+      // Disegna i cerchi colorati sempre, ma adatta le dimensioni in base alla scala
+      strokeWeight(0);
+      
+      let targetOffset = -5 * this.scaleMultiplier;
+      let currentOffset = 0;
+      
+      if (this.scaleMultiplier > 1.5) {
+        let progress = map(this.scaleMultiplier, 1.5, 20.0, 0, 1);
+        currentOffset = lerp(0, targetOffset, progress);
+        let blurAmount = map(this.scaleMultiplier, 1.5, 20.0, 0, 80);
+        drawingContext.filter = `blur(${blurAmount}px)`;
+      }
+      
+      fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita));
+      ellipse(currentOffset, currentOffset, this.raggio * this.scaleMultiplier * 0.5);
+      
+      fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita * 0.5));
+      ellipse(currentOffset, currentOffset, this.raggio * this.scaleMultiplier * 0.8);
+      
+      if (this.scaleMultiplier > 1.5) {
+        drawingContext.filter = 'none';
       }
       
       if (this.scaleMultiplier >= this.SCALA_GRANDE) {
