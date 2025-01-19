@@ -9,6 +9,7 @@ class GestoreMappa {
       this.gestoreTesto = new GestoreTesto(new GestoreAnimazioni());
       this.CONFIG = CONFIGURAZIONE;
       this.esagonoCliccato = null;
+      this.hoverAttivo = true;
     }
   
     caricaDati(tabella) {
@@ -131,16 +132,12 @@ class GestoreMappa {
     }
   
     aggiornaStatoEsagono(esagono) {
-        if (this.gestoreEsagoni.esagonoIngrandito) {
+        if (!this.hoverAttivo) {
+            esagono.hoverState = 0;
             if (this.gestoreEsagoni.esagonoIngrandito === esagono) {
-                esagono.hoverState = 0;
-                esagono.opacita = 255;
-            } else if (this.cellaHover === esagono) {
-                esagono.hoverState = 1;
                 esagono.opacita = 255;
             } else {
-                esagono.hoverState = 0;
-                esagono.opacita = 100;
+                esagono.opacita = this.regioneSelezionata === esagono.regione ? 255 : 30;
             }
             return;
         }

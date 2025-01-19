@@ -148,23 +148,21 @@ class GestoreEsagoni {
         }
     }
 
-    gestisciClickEsagono(esagono) {
+    animazioneRegione(d, esagono) {
+        if (d.properties.reg_name === esagono.regione) {
+            const currentTransform = d3.select(this).attr("transform") || "";
+            const translateX = -window.innerWidth * 0.2;
+            return `${currentTransform} translate(${translateX},0) scale(0.85)`;
+        }
+        return d.properties ? d.properties.transform || "" : "";
+    }
 
-        // Animazione della regione
+    gestisciClickEsagono(esagono) {
         d3.selectAll(".regione")
             .transition()
             .duration(800)
             .ease(d3.easeCubicInOut)
-            .attr("transform", (d) => {
-                if (d.properties.reg_name === esagono.regione) {
-                    // Sposta e scala leggermente la regione cliccata
-                    const currentTransform = d3.select(this).attr("transform") || "";
-                    const translateX = -window.innerWidth * 0.2; // 20% verso sinistra
-                    return `${currentTransform} translate(${translateX},0) scale(0.85)`;
-                }
-                return d.properties ? d.properties.transform || "" : "";
-            });
-
+            .attr("transform", (d) => this.animazioneRegione(d, esagono));
     }
 
     ripristinaVista() {
@@ -215,6 +213,4 @@ class GestoreEsagoni {
             ? 4 * t * t * t 
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
-
-
 } 

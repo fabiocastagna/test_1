@@ -101,172 +101,86 @@ class GestoreTesto {
         this.stato.sovraffollamento.ultimaCancellazione = millis();
     }
 
+    // Funzione per gestire la cancellazione del testo
+    cancellaTesto(stato, testoCorrente, velocitaCancellazione) {
+        if (stato.testo && !stato.inCancellazione) {
+            stato.inCancellazione = true;
+            stato.ultimaCancellazione = millis();
+        }
+        
+        if (stato.inCancellazione) {
+            let tempoCorrente = millis();
+            if (tempoCorrente - stato.ultimaCancellazione > velocitaCancellazione) {
+                testoCorrente = testoCorrente.slice(0, -1);
+                if (testoCorrente.length === 0) {
+                    stato.testo = "";
+                    stato.precedente = null;
+                    stato.inCancellazione = false;
+                }
+                stato.ultimaCancellazione = tempoCorrente;
+            }
+        }
+        return testoCorrente;
+    }
+
+    // Funzione per aggiornare il testo di una sezione
+    aggiornaTestoSezione(stato, testoCorrente, testoNuovo, gestoreAnimazioni) {
+        if (!stato.inCancellazione) {
+            testoCorrente = gestoreAnimazioni.animaTesto(testoCorrente, testoNuovo);
+        } else {
+            testoCorrente = this.cancellaTesto(stato, testoCorrente, this.velocitaCancellazione);
+        }
+        return testoCorrente;
+    }
+
+    // Modifica delle funzioni esistenti per utilizzare le nuove funzioni
     aggiornaTestoRegione(regioneSelezionata) {
         if (!regioneSelezionata) {
-            if (this.stato.regione.testo && !this.stato.regione.inCancellazione) {
-                this.stato.regione.inCancellazione = true;
-                this.stato.regione.ultimaCancellazione = millis();
-            }
-            
-            if (this.stato.regione.inCancellazione) {
-                let tempoCorrente = millis();
-                if (tempoCorrente - this.stato.regione.ultimaCancellazione > this.velocitaCancellazione) {
-                    this.testoCorrente.regione = this.testoCorrente.regione.slice(0, -1);
-                    if (this.testoCorrente.regione.length === 0) {
-                        this.stato.regione.testo = "";
-                        this.stato.regione.precedente = null;
-                        this.stato.regione.inCancellazione = false;
-                    }
-                    this.stato.regione.ultimaCancellazione = tempoCorrente;
-                }
-                return;
-            }
-            
-            this.resetStato();
+            this.testoCorrente.regione = this.cancellaTesto(this.stato.regione, this.testoCorrente.regione, this.velocitaCancellazione);
             return;
         }
 
         if (regioneSelezionata !== this.stato.regione.precedente) {
-            if (this.stato.regione.testo && !this.stato.regione.inCancellazione) {
-                this.stato.regione.inCancellazione = true;
-                this.stato.regione.ultimaCancellazione = millis();
-                return;
-            }
-            
-            if (!this.stato.regione.inCancellazione) {
-                this.stato.regione.testo = regioneSelezionata;
-                this.stato.regione.precedente = regioneSelezionata;
-                this.testoCorrente.regione = "";
-            }
+            this.stato.regione.testo = regioneSelezionata;
+            this.stato.regione.precedente = regioneSelezionata;
+            this.testoCorrente.regione = "";
         }
 
-        if (!this.stato.regione.inCancellazione) {
-            this.testoCorrente.regione = this.gestoreAnimazioni.animaTesto(
-                this.testoCorrente.regione,
-                this.stato.regione.testo
-            );
-        } else {
-            let tempoCorrente = millis();
-            if (tempoCorrente - this.stato.regione.ultimaCancellazione > this.velocitaCancellazione) {
-                this.testoCorrente.regione = this.testoCorrente.regione.slice(0, -1);
-                if (this.testoCorrente.regione.length === 0) {
-                    this.stato.regione.inCancellazione = false;
-                    this.stato.regione.testo = regioneSelezionata;
-                    this.stato.regione.precedente = regioneSelezionata;
-                }
-                this.stato.regione.ultimaCancellazione = tempoCorrente;
-            }
-        }
+        this.testoCorrente.regione = this.aggiornaTestoSezione(this.stato.regione, this.testoCorrente.regione, this.stato.regione.testo, this.gestoreAnimazioni);
     }
 
     aggiornaTestoCarcere(regioneSelezionata, esagonoSelezionato) {
-        // Se l'esagono è ingrandito al centro, non aggiornare il testo in hover
-        if (esagonoSelezionato?.scaleMultiplier > 15) {
+        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
             return;
         }
 
         if (!this.datiCarceri || !this.esagoni || !esagonoSelezionato) {
-            if (this.stato.carcere.testo && !this.stato.carcere.inCancellazione) {
-                this.stato.carcere.inCancellazione = true;
-                this.stato.carcere.ultimaCancellazione = millis();
-            }
-            
-            if (this.stato.carcere.inCancellazione) {
-                let tempoCorrente = millis();
-                if (tempoCorrente - this.stato.carcere.ultimaCancellazione > this.velocitaCancellazione) {
-                    this.testoCorrente.carcere = this.testoCorrente.carcere.slice(0, -1);
-                    if (this.testoCorrente.carcere.length === 0) {
-                        this.stato.carcere.testo = "";
-                        this.stato.carcere.precedente = null;
-                        this.stato.carcere.inCancellazione = false;
-                    }
-                    this.stato.carcere.ultimaCancellazione = tempoCorrente;
-                }
-                return;
-            }
-            
-            this.stato.carcere.testo = "";
-            this.stato.carcere.precedente = null;
-            this.testoCorrente.carcere = "";
+            this.testoCorrente.carcere = this.cancellaTesto(this.stato.carcere, this.testoCorrente.carcere, this.velocitaCancellazione);
             return;
         }
 
         const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
         const datiCarcere = this.datiCarceri.get(hexId);
 
-        if (esagonoSelezionato !== this.stato.carcere.precedente && 
-            !this.stato.carcere.cliccato && 
-            !this.stato.carcere.ingrandito && 
-            datiCarcere) {
-            
-            if (this.stato.carcere.testo && !this.stato.carcere.inCancellazione) {
-                this.stato.carcere.inCancellazione = true;
-                this.stato.carcere.ultimaCancellazione = millis();
-                return;
-            }
-            
-            if (!this.stato.carcere.inCancellazione) {
-                this.stato.carcere.testo = datiCarcere.carcere;
-                this.stato.carcere.precedente = esagonoSelezionato;
-                this.testoCorrente.carcere = "";
-            }
+        if (esagonoSelezionato !== this.stato.carcere.precedente && datiCarcere) {
+            this.stato.carcere.testo = datiCarcere.carcere;
+            this.stato.carcere.precedente = esagonoSelezionato;
+            this.testoCorrente.carcere = "";
         }
 
-        if (!this.stato.carcere.inCancellazione) {
-            this.testoCorrente.carcere = this.gestoreAnimazioni.animaTesto(
-                this.testoCorrente.carcere,
-                this.stato.carcere.testo
-            );
-        } else {
-            let tempoCorrente = millis();
-            if (tempoCorrente - this.stato.carcere.ultimaCancellazione > this.velocitaCancellazione) {
-                this.testoCorrente.carcere = this.testoCorrente.carcere.slice(0, -1);
-                if (this.testoCorrente.carcere.length === 0) {
-                    this.stato.carcere.inCancellazione = false;
-                    if (datiCarcere) {
-                        this.stato.carcere.testo = datiCarcere.carcere;
-                        this.stato.carcere.precedente = esagonoSelezionato;
-                    }
-                }
-                this.stato.carcere.ultimaCancellazione = tempoCorrente;
-            }
-        }
+        this.testoCorrente.carcere = this.aggiornaTestoSezione(this.stato.carcere, this.testoCorrente.carcere, this.stato.carcere.testo, this.gestoreAnimazioni);
     }
 
     aggiornaTestoSovraffollamento(regioneSelezionata, esagonoSelezionato) {
         if (!this.datiCarceri || !this.esagoni || !esagonoSelezionato) {
-            if (this.stato.sovraffollamento.testo && !this.stato.sovraffollamento.inCancellazione) {
-                this.stato.sovraffollamento.inCancellazione = true;
-                this.stato.sovraffollamento.ultimaCancellazione = millis();
-            }
-            
-            if (this.stato.sovraffollamento.inCancellazione) {
-                let tempoCorrente = millis();
-                if (tempoCorrente - this.stato.sovraffollamento.ultimaCancellazione > this.velocitaCancellazione) {
-                    this.testoCorrente.sovraffollamento = this.testoCorrente.sovraffollamento.slice(0, -1);
-                    if (this.testoCorrente.sovraffollamento.length === 0) {
-                        this.stato.sovraffollamento.testo = "";
-                        this.stato.sovraffollamento.precedente = null;
-                        this.stato.sovraffollamento.inCancellazione = false;
-                    }
-                    this.stato.sovraffollamento.ultimaCancellazione = tempoCorrente;
-                }
-                return;
-            }
-            
-            this.stato.sovraffollamento.testo = "";
-            this.stato.sovraffollamento.precedente = null;
-            this.testoCorrente.sovraffollamento = "";
+            this.testoCorrente.sovraffollamento = this.cancellaTesto(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.velocitaCancellazione);
             return;
         }
 
         const esagonoIngrandito = esagonoSelezionato.scaleMultiplier > 1.5;
 
         if (!esagonoIngrandito) {
-            if (this.stato.sovraffollamento.testo && !this.stato.sovraffollamento.inCancellazione) {
-                this.stato.sovraffollamento.inCancellazione = true;
-                this.stato.sovraffollamento.ultimaCancellazione = millis();
-            }
+            this.testoCorrente.sovraffollamento = this.cancellaTesto(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.velocitaCancellazione);
             return;
         }
 
@@ -274,42 +188,14 @@ class GestoreTesto {
         const datiCarcere = this.datiCarceri.get(hexId);
 
         if (datiCarcere && esagonoSelezionato !== this.stato.sovraffollamento.precedente) {
-            if (this.stato.sovraffollamento.testo && !this.stato.sovraffollamento.inCancellazione) {
-                this.stato.sovraffollamento.inCancellazione = true;
-                this.stato.sovraffollamento.ultimaCancellazione = millis();
-                return;
-            }
-            
-            if (!this.stato.sovraffollamento.inCancellazione) {
-                const percentuale = parseFloat(datiCarcere.sovraffollamento);
-                this.stato.sovraffollamento.testo = `Tasso di sovraffollamento:\n${percentuale}%`;
-                this.stato.sovraffollamento.precedente = esagonoSelezionato;
-                this.stato.sovraffollamento.percentuale = percentuale;
-                this.testoCorrente.sovraffollamento = "";
-            }
+            const percentuale = parseFloat(datiCarcere.sovraffollamento);
+            this.stato.sovraffollamento.testo = `Tasso di sovraffollamento:\n${percentuale}%`;
+            this.stato.sovraffollamento.precedente = esagonoSelezionato;
+            this.stato.sovraffollamento.percentuale = percentuale;
+            this.testoCorrente.sovraffollamento = "";
         }
 
-        if (!this.stato.sovraffollamento.inCancellazione) {
-            this.testoCorrente.sovraffollamento = this.gestoreAnimazioni.animaTesto(
-                this.testoCorrente.sovraffollamento,
-                this.stato.sovraffollamento.testo
-            );
-        } else {
-            let tempoCorrente = millis();
-            if (tempoCorrente - this.stato.sovraffollamento.ultimaCancellazione > this.velocitaCancellazione) {
-                this.testoCorrente.sovraffollamento = this.testoCorrente.sovraffollamento.slice(0, -1);
-                if (this.testoCorrente.sovraffollamento.length === 0) {
-                    this.stato.sovraffollamento.inCancellazione = false;
-                    if (datiCarcere) {
-                        const percentuale = parseFloat(datiCarcere.sovraffollamento);
-                        this.stato.sovraffollamento.testo = `Tasso di sovraffollamento:\n${percentuale}%`;
-                        this.stato.sovraffollamento.precedente = esagonoSelezionato;
-                        this.stato.sovraffollamento.percentuale = percentuale;
-                    }
-                }
-                this.stato.sovraffollamento.ultimaCancellazione = tempoCorrente;
-            }
-        }
+        this.testoCorrente.sovraffollamento = this.aggiornaTestoSezione(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.stato.sovraffollamento.testo, this.gestoreAnimazioni);
     }
 
     aggiornaTesto(regioneSelezionata, esagonoSelezionato) {
