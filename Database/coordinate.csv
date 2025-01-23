@@ -172,12 +172,12 @@ Toscana,Toscana_hex_15,601.21.00,385.06.00,Prato,101.88
 Toscana,Toscana_hex_16,630.03.00,435.39.00,San Gimignano,143.05
 Trentino-Alto_Adige,Trentino-Alto_Adige_hex_1,486.32.00,85.54.00,Siena,125.86
 Trentino-Alto_Adige,Trentino-Alto_Adige_hex_2,543.57.00,85.54.00,Volterra,95.24
-Umbria,Umbria_hex_1,659.26.00,585.15.00,Bolzano,137.65
-Umbria,Umbria_hex_2,630.03.00,535.23.00,Trento,88.28
-Umbria,Umbria_hex_3,659.26.00,485.31.00,Spoleto,85.00
-Umbria,Umbria_hex_4,688.08.00,535.23.00,Orvieto,124.49
-Veneto,Veneto_hex_1,543.57.00,185.38.00,Perugia,149.35
-Veneto,Veneto_hex_2,572.39.00,235.30.00,Terni,131.99
+Umbria,Umbria_hex_1,659.26.00,585.15.00,Terni,131.99
+Umbria,Umbria_hex_2,630.03.00,535.23.00,Perugia,149.35
+Umbria,Umbria_hex_3,688.08.00,535.23.00,Spoleto,85.00
+Umbria,Umbria_hex_4,659.26.00,485.31.00,Orvieto,124.49
+Veneto,Veneto_hex_1,543.57.00,185.38.00,Trento,88.28
+Veneto,Veneto_hex_2,572.39.00,235.30.00,Bolzano,137.65
 Veneto,Veneto_hex_3,601.21.00,185.38.00,Brissogne,88.10
 Veneto,Veneto_hex_4,572.39.00,135.46.00,Belluno,134.15
 Veneto,Veneto_hex_5,601.21.00,85.54.00,Padova circondariale,117.93

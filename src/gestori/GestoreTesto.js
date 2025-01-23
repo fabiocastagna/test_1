@@ -61,18 +61,35 @@ class GestoreTesto {
 
     async caricaDatiCarceri() {
         try {
-            const response = await fetch('Database/Data_Comp.csv');
+            const response = await fetch('Database/coordinate.csv');
             const csvText = await response.text();
-            const righe = csvText.split('\n').slice(1);
+            const righe = csvText.split('\n').slice(1); // Salta l'intestazione
             
             righe.forEach(riga => {
                 if (!riga.trim()) return;
-                const [carcere, regione, , , , , , , , , , sovraffollamento, , , , , , , , , , , , , , , , hexId] = riga.split(',');
+                
+                const [
+                    regione,
+                    hexId,
+                    x,
+                    y,
+                    carcere,
+                    sovraffollamento
+                ] = riga.split(',').map(val => val.trim());
                 
                 if (!this.datiCarceri.has(hexId)) {
-                    this.datiCarceri.set(hexId, { carcere, regione, sovraffollamento });
+                    this.datiCarceri.set(hexId, {
+                        carcere,
+                        regione,
+                        x: parseFloat(x),
+                        y: parseFloat(y),
+                        sovraffollamento: parseFloat(sovraffollamento),
+                        hexId
+                    });
                 }
             });
+            
+            console.log('Dati carceri caricati con successo');
         } catch (error) {
             console.error('Errore nel caricamento dei dati delle carceri:', error);
         }
