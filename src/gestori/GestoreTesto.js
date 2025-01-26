@@ -48,8 +48,14 @@ class GestoreTestoBase {
 }
 
 class GestoreTestoRegione extends GestoreTestoBase {
+    constructor(gestoreAnimazioni) {
+        super(gestoreAnimazioni);
+        this.testoCompletato = false;
+    }
+
     aggiorna(regioneSelezionata) {
         if (!regioneSelezionata) {
+            this.testoCompletato = false;
             return this.aggiornaTesto("");
         }
 
@@ -57,9 +63,25 @@ class GestoreTestoRegione extends GestoreTestoBase {
             this.stato.precedente = regioneSelezionata;
             this.stato.testo = regioneSelezionata;
             this.testoCorrente = "";
+            this.testoCompletato = false;
         }
 
-        return this.aggiornaTesto(this.stato.testo);
+        if (this.testoCompletato) {
+            return this.stato.testo;
+        }
+
+        this.testoCorrente = this.aggiornaTesto(this.stato.testo);
+        
+        if (this.testoCorrente === this.stato.testo) {
+            this.testoCompletato = true;
+        }
+
+        return this.testoCorrente;
+    }
+
+    reset() {
+        super.reset();
+        this.testoCompletato = false;
     }
 }
 
