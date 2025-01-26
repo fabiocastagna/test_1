@@ -2,7 +2,7 @@ class GestoreIntro {
     constructor(gestoreAnimazioni) {
         this.gestoreAnimazioni = gestoreAnimazioni;
         this.font = loadFont('FONT/AeionMono-Bold.ttf');
-        this.attivo = false;
+        this.attivo = true;
         
         const config = CONFIGURAZIONE;
         this.testoRiga1 = config.testi.intro.riga1;
@@ -21,6 +21,7 @@ class GestoreIntro {
         this.inCancellazione = false;
         this.ultimaCancellazione = 0;
         this.velocitaCancellazione = config.animazioni.velocita.cancellazione;
+        this.opacitaBottoneHover = 255;
     }
 
     aggiorna() {
@@ -98,9 +99,11 @@ class GestoreIntro {
 
         // Disegna il bottone
         if (this.bottoneVisibile) {
-            // Effetto hover
-            let coloreBottone = this.bottoneHover ? 200 : 255;
-            fill(coloreBottone, min(this.opacitaBottone, this.opacitaGenerale));
+            // Interpola gradualmente l'opacità del bottone
+            let opacitaTarget = this.bottoneHover ? 200 : 255;
+            this.opacitaBottoneHover = lerp(this.opacitaBottoneHover, opacitaTarget, 0.1);
+            
+            fill(this.opacitaBottoneHover, min(this.opacitaBottone, this.opacitaGenerale));
             rect(width/2 - this.larghezzaBottone/2, height/2 + 80, 
                  this.larghezzaBottone, this.altezzaBottone, 8);
             
