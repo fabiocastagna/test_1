@@ -149,16 +149,24 @@ class GestoreMappa {
     }
   
     calcolaColore(sovraffollamento, min, max) {
-      let colore = lerpColor(
-        color(this.CONFIG.colori.esagonoBase), 
-        color(this.CONFIG.colori.esagonoMedio), 
-        (sovraffollamento - min) / (max - min)
-      );
-      return lerpColor(
-        colore, 
-        color(this.CONFIG.colori.esagonoAlto), 
-        (sovraffollamento - min) / (max - min)
-      );
+        if (sovraffollamento <= 100) {
+            // Da bianco a giallo (0-100%)
+            return lerpColor(
+                color(this.CONFIG.colori.esagonoBase),
+                color(this.CONFIG.colori.esagonoMedio),
+                map(sovraffollamento, 0, 100, 0, 1)
+            );
+        } else if (sovraffollamento <= 150) {
+            // Da giallo a rosso (100-150%)
+            return lerpColor(
+                color(this.CONFIG.colori.esagonoMedio),
+                color(this.CONFIG.colori.esagonoAlto),
+                map(sovraffollamento, 100, 150, 0, 1)
+            );
+        } else {
+            // Oltre 150% resta rosso
+            return color(this.CONFIG.colori.esagonoAlto);
+        }
     }
   
     aggiorna() {
@@ -357,9 +365,20 @@ class GestoreMappa {
     }
 
     disegna() {
-        // Disegna gli esagoni
+        // Prima disegna gli esagoni non in hover
         for (let esagono of this.esagoni) {
-            esagono.disegna();
+            if ((esagono.regione !== this.regioneHover && esagono !== this.cellaHover) || 
+                !this.hoverAttivo) {
+                esagono.disegna();
+            }
+        }
+
+        // Poi disegna gli esagoni in hover
+        for (let esagono of this.esagoni) {
+            if ((esagono.regione === this.regioneHover || esagono === this.cellaHover) && 
+                this.hoverAttivo) {
+                esagono.disegna();
+            }
         }
 
         // Disegna il testo

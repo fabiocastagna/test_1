@@ -61,7 +61,7 @@ class GestoreTesto {
 
     async caricaDatiCarceri() {
         try {
-            const response = await fetch('Database/coordinate.csv');
+            const response = await fetch('Database/coordinate_test.csv');
             const csvText = await response.text();
             const righe = csvText.split('\n').slice(1); // Salta l'intestazione
             

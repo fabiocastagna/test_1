@@ -7,7 +7,7 @@ let caricamentoDatiCompletato = false;
 
 function preload() {
   try {
-    tabella = loadTable('database/coordinate.csv', 'csv', 'header');
+    tabella = loadTable('database/coordinate_test.csv', 'csv', 'header');
   } catch (error) {
     console.error('Errore nel caricamento dei dati:', error);
   }
