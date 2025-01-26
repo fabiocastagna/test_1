@@ -2,7 +2,7 @@ class GestoreIntro {
     constructor(gestoreAnimazioni) {
         this.gestoreAnimazioni = gestoreAnimazioni;
         this.font = loadFont('FONT/AeionMono-Bold.ttf');
-        this.attivo = true;
+        this.attivo = false;
         
         const config = CONFIGURAZIONE;
         this.testoRiga1 = config.testi.intro.riga1;
@@ -12,7 +12,6 @@ class GestoreIntro {
         this.bottoneVisibile = false;
         this.opacitaBottone = 0;
         this.opacitaGenerale = 255;
-        this.opacitaItalia = 0;
         this.inTransizione = false;
         this.durataTransizione = config.animazioni.durata.transizione;
         this.tempoInizioTransizione = 0;

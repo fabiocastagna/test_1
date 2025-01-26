@@ -17,6 +17,7 @@ class GestoreMappa {
       this.CONFIG = CONFIGURAZIONE;
       this.esagonoCliccato = null;
       this.hoverAttivo = true;
+      this.fadeInProgress = 0; // Progresso del fade in (0-1)
       
       // Cache per i calcoli costosi
       this._cache = {
@@ -161,6 +162,11 @@ class GestoreMappa {
     }
   
     aggiorna() {
+        // Aggiorna il fade in
+        if (this.fadeInProgress < 1) {
+            this.fadeInProgress = min(this.fadeInProgress + 0.02, 1);
+        }
+
         let nuovaRegioneHover = null;
         let nuovaCellaHover = null;
 
@@ -209,9 +215,9 @@ class GestoreMappa {
         if (!this.hoverAttivo) {
             esagono.hoverState = 0;
             if (this.gestoreEsagoni.esagonoIngrandito === esagono) {
-                esagono.opacita = 255;
+                esagono.opacita = 255 * this.fadeInProgress;
             } else {
-                esagono.opacita = this.regioneSelezionata === esagono.regione ? 255 : 30;
+                esagono.opacita = (this.regioneSelezionata === esagono.regione ? 255 : 30) * this.fadeInProgress;
             }
             return;
         }
@@ -230,7 +236,7 @@ class GestoreMappa {
         } else if (this.regioneHover) {
             targetOpacita = esagono.regione === this.regioneHover ? 255 : 100;
         }
-        esagono.opacita = lerp(esagono.opacita, targetOpacita, 0.1);
+        esagono.opacita = lerp(esagono.opacita, targetOpacita * this.fadeInProgress, 0.1);
     }
   
     gestisciClick(mouseX, mouseY) {

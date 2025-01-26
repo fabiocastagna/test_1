@@ -7,7 +7,7 @@ class Esagono {
       this.raggio = raggio;
       this.regione = regione;
       this.colore = colore;
-      this.opacita = 255;
+      this.opacita = 0;
       this.hoverState = 0;
       this.targetX = x;
       this.targetY = y;
@@ -127,7 +127,7 @@ class Esagono {
       // Disegna l'esagono con bordo (fermo)
       let strokeColor = lerpColor(color("grey"), color("white"), this.hoverState);
       let strokeW = lerp(2, 3, this.hoverState);
-      stroke(strokeColor);
+      stroke(strokeColor.levels[0], strokeColor.levels[1], strokeColor.levels[2], this.opacita);
       strokeWeight(strokeW);
       
       drawingContext.shadowBlur = lerp(0, 50, this.hoverState);
@@ -135,7 +135,7 @@ class Esagono {
         red(this.colore), 
         green(this.colore), 
         blue(this.colore), 
-        lerp(0, 250, this.hoverState)
+        lerp(0, this.opacita, this.hoverState)
       );
       
       noFill();
