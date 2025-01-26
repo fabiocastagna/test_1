@@ -17,10 +17,8 @@ class GestoreMappa {
       this.CONFIG = CONFIGURAZIONE;
       this.esagonoCliccato = null;
       this.hoverAttivo = true;
-      this.fadeInProgress = 0; // Progresso del fade in (0-1)
-      
-      // Cache per i calcoli costosi
-      this._cache = {
+      this.fadeInProgress = 0;
+            this._cache = {
           esagoniPerRegione: new Map(),
           centroRegioni: new Map(),
           dimensioniMappa: null

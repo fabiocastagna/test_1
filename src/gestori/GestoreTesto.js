@@ -1,3 +1,182 @@
+class GestoreTestoBase {
+    constructor(gestoreAnimazioni) {
+        this.gestoreAnimazioni = gestoreAnimazioni;
+        this.stato = {
+            testo: "",
+            precedente: null,
+            inCancellazione: false,
+            ultimaCancellazione: 0
+        };
+        this.testoCorrente = "";
+        this.velocitaCancellazione = 20;
+    }
+
+    reset() {
+        this.stato.inCancellazione = true;
+        this.stato.ultimaCancellazione = millis();
+    }
+
+    cancellaTesto() {
+        if (this.stato.inCancellazione) {
+            let tempoCorrente = millis();
+            if (tempoCorrente - this.stato.ultimaCancellazione > this.velocitaCancellazione) {
+                this.testoCorrente = this.testoCorrente.slice(0, -1);
+                if (this.testoCorrente.length === 0) {
+                    this.stato.testo = "";
+                    this.stato.precedente = null;
+                    this.stato.inCancellazione = false;
+                }
+                this.stato.ultimaCancellazione = tempoCorrente;
+            }
+        }
+        return this.testoCorrente;
+    }
+
+    aggiornaTesto(testoNuovo) {
+        if (testoNuovo === "") {
+            this.stato.inCancellazione = true;
+            return this.cancellaTesto();
+        }
+
+        if (this.stato.inCancellazione) {
+            return this.cancellaTesto();
+        }
+
+        this.testoCorrente = this.gestoreAnimazioni.animaTesto(this.testoCorrente, testoNuovo);
+        return this.testoCorrente;
+    }
+}
+
+class GestoreTestoRegione extends GestoreTestoBase {
+    aggiorna(regioneSelezionata) {
+        if (!regioneSelezionata) {
+            return this.aggiornaTesto("");
+        }
+
+        if (regioneSelezionata !== this.stato.precedente) {
+            this.stato.precedente = regioneSelezionata;
+            this.stato.testo = regioneSelezionata;
+            this.testoCorrente = "";
+        }
+
+        return this.aggiornaTesto(this.stato.testo);
+    }
+}
+
+class GestoreTestoCarcere extends GestoreTestoBase {
+    constructor(gestoreAnimazioni, datiCarceri) {
+        super(gestoreAnimazioni);
+        this.datiCarceri = datiCarceri;
+        this.esagonoCliccato = null;
+    }
+
+    aggiorna(regioneSelezionata, esagonoSelezionato) {
+        // Se siamo nella vista esagono ingrandito
+        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
+            this.esagonoCliccato = esagonoSelezionato;
+        }
+        
+        // Se non c'è una regione selezionata o non c'è nessun esagono da mostrare
+        if (!regioneSelezionata || (!esagonoSelezionato && !this.esagonoCliccato)) {
+            if (this.stato.testo !== "") {
+                this.stato.inCancellazione = true;
+            }
+            return this.aggiornaTesto("");
+        }
+
+        // Se siamo nella vista regione (non ingrandita)
+        if (esagonoSelezionato?.scaleMultiplier <= 1.5 && this.esagonoCliccato?.scaleMultiplier <= 1.5) {
+            this.esagonoCliccato = null;
+            const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
+            const datiCarcere = this.datiCarceri.get(hexId);
+            const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
+
+            if (esagonoSelezionato !== this.stato.precedente) {
+                if (this.stato.testo !== "" && nuovoTesto !== this.stato.testo) {
+                    this.stato.inCancellazione = true;
+                }
+                this.stato.precedente = esagonoSelezionato;
+                this.stato.testo = nuovoTesto;
+            }
+
+            return this.aggiornaTesto(this.stato.testo);
+        }
+
+        // Se siamo nella vista esagono ingrandito
+        const esagonoDaUsare = this.esagonoCliccato || esagonoSelezionato;
+        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoDaUsare.id}`;
+        const datiCarcere = this.datiCarceri.get(hexId);
+        const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
+
+        if (esagonoDaUsare !== this.stato.precedente) {
+            if (this.stato.testo !== "" && nuovoTesto !== this.stato.testo) {
+                this.stato.inCancellazione = true;
+            }
+            this.stato.precedente = esagonoDaUsare;
+            this.stato.testo = nuovoTesto;
+        }
+
+        return this.aggiornaTesto(this.stato.testo);
+    }
+
+    reset() {
+        super.reset();
+        this.esagonoCliccato = null;
+    }
+}
+
+class GestoreTestoSovraffollamento extends GestoreTestoBase {
+    constructor(gestoreAnimazioni, datiCarceri) {
+        super(gestoreAnimazioni);
+        this.datiCarceri = datiCarceri;
+        this.percentuale = 0;
+        this.esagonoCliccato = null;
+    }
+
+    aggiorna(regioneSelezionata, esagonoSelezionato) {
+        // Se siamo nella vista esagono ingrandito
+        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
+            this.esagonoCliccato = esagonoSelezionato;
+        }
+        
+        // Se non c'è una regione selezionata o non c'è nessun esagono ingrandito
+        if (!regioneSelezionata || !this.esagonoCliccato) {
+            if (this.stato.testo !== "") {
+                this.stato.inCancellazione = true;
+            }
+            return this.aggiornaTesto("");
+        }
+
+        // Se siamo nella vista regione (non ingrandita)
+        if (this.esagonoCliccato?.scaleMultiplier <= 1.5) {
+            this.esagonoCliccato = null;
+            return this.aggiornaTesto("");
+        }
+
+        // Se siamo nella vista esagono ingrandito
+        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${this.esagonoCliccato.id}`;
+        const datiCarcere = this.datiCarceri.get(hexId);
+
+        if (this.esagonoCliccato !== this.stato.precedente && datiCarcere) {
+            this.stato.precedente = this.esagonoCliccato;
+            this.percentuale = parseFloat(datiCarcere.sovraffollamento);
+            this.stato.testo = `Tasso di sovraffollamento:\n${this.percentuale}%`;
+            this.testoCorrente = "";
+        }
+
+        return this.aggiornaTesto(this.stato.testo);
+    }
+
+    reset() {
+        super.reset();
+        this.esagonoCliccato = null;
+    }
+
+    getPercentuale() {
+        return this.percentuale;
+    }
+}
+
 class GestoreTesto {
     constructor(gestoreAnimazioni) {
         this.gestoreAnimazioni = gestoreAnimazioni;
@@ -27,12 +206,13 @@ class GestoreTesto {
         this.datiCarceri = new Map();
         this.esagoni = null;
         this.font = null;
-        this.testoCorrente = {
-            regione: "",
-            carcere: "",
-            sovraffollamento: ""
-        };
-        this.velocitaCancellazione = 20;
+        this.regioneSelezionata = null;
+        this.esagonoSelezionato = null;
+        
+        this.gestoreRegione = new GestoreTestoRegione(gestoreAnimazioni);
+        this.gestoreCarcere = new GestoreTestoCarcere(gestoreAnimazioni, this.datiCarceri);
+        this.gestoreSovraffollamento = new GestoreTestoSovraffollamento(gestoreAnimazioni, this.datiCarceri);
+        
         this.inizializza();
     }
 
@@ -96,12 +276,9 @@ class GestoreTesto {
     }
 
     resetStato() {
-        this.stato.regione.inCancellazione = true;
-        this.stato.regione.ultimaCancellazione = millis();
-        this.stato.carcere.inCancellazione = true;
-        this.stato.carcere.ultimaCancellazione = millis();
-        this.stato.sovraffollamento.inCancellazione = true;
-        this.stato.sovraffollamento.ultimaCancellazione = millis();
+        this.gestoreRegione.reset();
+        this.gestoreCarcere.reset();
+        this.gestoreSovraffollamento.reset();
     }
 
     resetStatoRegione() {
@@ -118,111 +295,22 @@ class GestoreTesto {
         this.stato.sovraffollamento.ultimaCancellazione = millis();
     }
 
-    // Funzione per gestire la cancellazione del testo
-    cancellaTesto(stato, testoCorrente, velocitaCancellazione) {
-        if (stato.testo && !stato.inCancellazione) {
-            stato.inCancellazione = true;
-            stato.ultimaCancellazione = millis();
-        }
-        
-        if (stato.inCancellazione) {
-            let tempoCorrente = millis();
-            if (tempoCorrente - stato.ultimaCancellazione > velocitaCancellazione) {
-                testoCorrente = testoCorrente.slice(0, -1);
-                if (testoCorrente.length === 0) {
-                    stato.testo = "";
-                    stato.precedente = null;
-                    stato.inCancellazione = false;
-                }
-                stato.ultimaCancellazione = tempoCorrente;
-            }
-        }
-        return testoCorrente;
-    }
-
-    // Funzione per aggiornare il testo di una sezione
-    aggiornaTestoSezione(stato, testoCorrente, testoNuovo, gestoreAnimazioni) {
-        if (!stato.inCancellazione) {
-            testoCorrente = gestoreAnimazioni.animaTesto(testoCorrente, testoNuovo);
-        } else {
-            testoCorrente = this.cancellaTesto(stato, testoCorrente, this.velocitaCancellazione);
-        }
-        return testoCorrente;
-    }
-
-    // Modifica delle funzioni esistenti per utilizzare le nuove funzioni
-    aggiornaTestoRegione(regioneSelezionata) {
-        if (!regioneSelezionata) {
-            this.testoCorrente.regione = this.cancellaTesto(this.stato.regione, this.testoCorrente.regione, this.velocitaCancellazione);
-            return;
-        }
-
-        if (regioneSelezionata !== this.stato.regione.precedente) {
-            this.stato.regione.testo = regioneSelezionata;
-            this.stato.regione.precedente = regioneSelezionata;
-            this.testoCorrente.regione = "";
-        }
-
-        this.testoCorrente.regione = this.aggiornaTestoSezione(this.stato.regione, this.testoCorrente.regione, this.stato.regione.testo, this.gestoreAnimazioni);
-    }
-
-    aggiornaTestoCarcere(regioneSelezionata, esagonoSelezionato) {
-        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
-            return;
-        }
-
-        if (!this.datiCarceri || !this.esagoni || !esagonoSelezionato) {
-            this.testoCorrente.carcere = this.cancellaTesto(this.stato.carcere, this.testoCorrente.carcere, this.velocitaCancellazione);
-            return;
-        }
-
-        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
-        const datiCarcere = this.datiCarceri.get(hexId);
-
-        if (esagonoSelezionato !== this.stato.carcere.precedente && datiCarcere) {
-            this.stato.carcere.testo = datiCarcere.carcere;
-            this.stato.carcere.precedente = esagonoSelezionato;
-            this.testoCorrente.carcere = "";
-        }
-
-        this.testoCorrente.carcere = this.aggiornaTestoSezione(this.stato.carcere, this.testoCorrente.carcere, this.stato.carcere.testo, this.gestoreAnimazioni);
-    }
-
-    aggiornaTestoSovraffollamento(regioneSelezionata, esagonoSelezionato) {
-        if (!this.datiCarceri || !this.esagoni || !esagonoSelezionato) {
-            this.testoCorrente.sovraffollamento = this.cancellaTesto(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.velocitaCancellazione);
-            return;
-        }
-
-        const esagonoIngrandito = esagonoSelezionato.scaleMultiplier > 1.5;
-
-        if (!esagonoIngrandito) {
-            this.testoCorrente.sovraffollamento = this.cancellaTesto(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.velocitaCancellazione);
-            return;
-        }
-
-        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
-        const datiCarcere = this.datiCarceri.get(hexId);
-
-        if (datiCarcere && esagonoSelezionato !== this.stato.sovraffollamento.precedente) {
-            const percentuale = parseFloat(datiCarcere.sovraffollamento);
-            this.stato.sovraffollamento.testo = `Tasso di sovraffollamento:\n${percentuale}%`;
-            this.stato.sovraffollamento.precedente = esagonoSelezionato;
-            this.stato.sovraffollamento.percentuale = percentuale;
-            this.testoCorrente.sovraffollamento = "";
-        }
-
-        this.testoCorrente.sovraffollamento = this.aggiornaTestoSezione(this.stato.sovraffollamento, this.testoCorrente.sovraffollamento, this.stato.sovraffollamento.testo, this.gestoreAnimazioni);
-    }
-
     aggiornaTesto(regioneSelezionata, esagonoSelezionato) {
-        this.aggiornaTestoRegione(regioneSelezionata);
-        this.aggiornaTestoCarcere(regioneSelezionata, esagonoSelezionato);
-        this.aggiornaTestoSovraffollamento(regioneSelezionata, esagonoSelezionato);
+        this.regioneSelezionata = regioneSelezionata;
+        this.esagonoSelezionato = esagonoSelezionato;
+
+        return {
+            regione: this.gestoreRegione.aggiorna(regioneSelezionata),
+            carcere: this.gestoreCarcere.aggiorna(regioneSelezionata, esagonoSelezionato),
+            sovraffollamento: this.gestoreSovraffollamento.aggiorna(regioneSelezionata, esagonoSelezionato),
+            percentualeSovraffollamento: this.gestoreSovraffollamento.getPercentuale()
+        };
     }
 
     disegna() {
         if (!this.font) return;
+
+        const testi = this.aggiornaTesto(this.regioneSelezionata, this.esagonoSelezionato);
 
         push();
         textFont(this.font);
@@ -231,47 +319,46 @@ class GestoreTesto {
         const xPos = width * 0.75;
         const yPos = height * 0.5;
         
-        textSize(32);
-        fill(255);
-        text(this.testoCorrente.regione || this.stato.regione.testo, xPos, yPos);
-        
-        if (this.stato.carcere.testo) {
-            textSize(24);
-            fill(200);
-            text(this.testoCorrente.carcere, xPos, yPos + 40);
+        // Disegna testo regione
+        if (testi.regione) {
+            textSize(32);
+            fill(255);
+            text(testi.regione, xPos, yPos);
         }
         
-        if (this.stato.sovraffollamento.testo) {
-            const lines = this.testoCorrente.sovraffollamento.split('\n');
+        // Disegna testo carcere
+        if (testi.carcere) {
+            textSize(24);
+            fill(200);
+            text(testi.carcere, xPos, yPos + 40);
+        }
+        
+        // Disegna testo sovraffollamento
+        if (testi.sovraffollamento) {
+            const lines = testi.sovraffollamento.split('\n');
             
-            // Prima riga (testo)
             textSize(20);
             fill(150);
             text(lines[0], xPos, yPos + 80);
             
-            // Seconda riga (percentuale)
             if (lines[1]) {
                 textSize(72);
-                const percentuale = parseFloat(lines[1]);
+                const percentuale = testi.percentualeSovraffollamento;
                 
-                // Calcolo del colore con gradiente
                 let colore;
                 if (percentuale <= 100) {
-                    // Da bianco a giallo (0-100%)
                     colore = lerpColor(
                         color(CONFIGURAZIONE.colori.esagonoBase),
                         color(CONFIGURAZIONE.colori.esagonoMedio),
                         map(percentuale, 0, 100, 0, 1)
                     );
                 } else if (percentuale <= 150) {
-                    // Da giallo a rosso (100-150%)
                     colore = lerpColor(
                         color(CONFIGURAZIONE.colori.esagonoMedio),
                         color(CONFIGURAZIONE.colori.esagonoAlto),
                         map(percentuale, 100, 150, 0, 1)
                     );
                 } else {
-                    // Oltre 150% resta rosso
                     colore = color(CONFIGURAZIONE.colori.esagonoAlto);
                 }
                 
