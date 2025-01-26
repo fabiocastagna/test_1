@@ -1,12 +1,13 @@
 class GestoreAnimazioni {
     constructor() {
-        this.VELOCITA_ANIMAZIONE = 0.05;  // Velocità base delle animazioni
-        this.VELOCITA_ANIMAZIONE_TESTO = 50;  // Velocità animazione testo (millisecondi)
-        this.VELOCITA_ANIMAZIONE_SCALA = 0.05;  // Ridotto per un'animazione più fluida
-        this.FLUIDITA_SCALA = 0.05;      // Nuovo parametro per la fluidità
-        this.ultimoAggiornamento = 0;  // Aggiungi questa riga
-        this.DURATA_TRANSIZIONE = 500; // 1 secondo per la transizione
-        this.VELOCITA_TESTO = 50;  // millisecondi tra ogni carattere
+        const config = CONFIGURAZIONE.animazioni;
+        this.VELOCITA_ANIMAZIONE = config.velocita.base;
+        this.VELOCITA_ANIMAZIONE_TESTO = config.velocita.testo;
+        this.VELOCITA_ANIMAZIONE_SCALA = config.velocita.scala;
+        this.FLUIDITA_SCALA = config.velocita.fluidita;
+        this.DURATA_TRANSIZIONE = config.durata.transizione;
+        this.VELOCITA_TESTO = config.velocita.testo;
+        this.ultimoAggiornamento = 0;
         this.ultimoCarattereAggiunto = 0;
         this.inCancellazione = false;
     }
@@ -68,5 +69,29 @@ class GestoreAnimazioni {
             }
         }
         return testoCorrente;
+    }
+
+    // Nuova funzione per animare l'opacità
+    animaOpacita(opacitaCorrente, opacitaTarget, velocita = 0.1) {
+        return lerp(opacitaCorrente, opacitaTarget, velocita);
+    }
+
+    // Nuova funzione per animare la scala con durata
+    animaScalaConDurata(scalaCorrente, scalaTarget, tempoInizio, durata) {
+        const tempoTrascorso = millis() - tempoInizio;
+        const progresso = Math.min(tempoTrascorso / durata, 1);
+        const easeProgresso = this.easeInOutCubic(progresso);
+        
+        return lerp(scalaCorrente, scalaTarget, easeProgresso);
+    }
+
+    // Nuova funzione per gestire le transizioni generiche
+    gestisciTransizione(valoreCorrente, valoreTarget, durata, tempoInizio) {
+        const tempoTrascorso = millis() - tempoInizio;
+        const progresso = Math.min(tempoTrascorso / durata, 1);
+        return {
+            valore: lerp(valoreCorrente, valoreTarget, this.easeInOutCubic(progresso)),
+            completata: progresso >= 1
+        };
     }
 } 

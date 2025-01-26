@@ -3,8 +3,10 @@ class GestoreIntro {
         this.gestoreAnimazioni = gestoreAnimazioni;
         this.font = loadFont('FONT/AeionMono-Bold.ttf');
         this.attivo = true;
-        this.testoRiga1 = "In Italia ci sono x carceri";
-        this.testoRiga2 = "x di questi sono sovraffollati";
+        
+        const config = CONFIGURAZIONE;
+        this.testoRiga1 = config.testi.intro.riga1;
+        this.testoRiga2 = config.testi.intro.riga2;
         this.testoCorrente1 = "";
         this.testoCorrente2 = "";
         this.bottoneVisibile = false;
@@ -12,14 +14,14 @@ class GestoreIntro {
         this.opacitaGenerale = 255;
         this.opacitaItalia = 0;
         this.inTransizione = false;
-        this.durataTransizione = 1000;
+        this.durataTransizione = config.animazioni.durata.transizione;
         this.tempoInizioTransizione = 0;
         this.bottoneHover = false;
-        this.larghezzaBottone = 140;
-        this.altezzaBottone = 45;
+        this.larghezzaBottone = config.dimensioni.bottone.larghezza;
+        this.altezzaBottone = config.dimensioni.bottone.altezza;
         this.inCancellazione = false;
         this.ultimaCancellazione = 0;
-        this.velocitaCancellazione = 20;
+        this.velocitaCancellazione = config.animazioni.velocita.cancellazione;
     }
 
     aggiorna() {

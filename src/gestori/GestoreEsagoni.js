@@ -2,20 +2,24 @@ class GestoreEsagoni {
     constructor(gestoreMappa) {
         this.gestoreMappa = gestoreMappa;
         this.esagonoIngrandito = null;
-        this.OFFSET_ITALIA_X = -width * 0.25;
-        this.OFFSET_REGIONE_X = width * 0.25;
-        this.DURATA_ANIMAZIONE = 500;
-        this.tempoInizioAnimazione = 0;
+        
+        const config = CONFIGURAZIONE;
+        this.OFFSET_ITALIA_X = -width * config.layout.offset.italia.x;
+        this.OFFSET_REGIONE_X = width * config.layout.offset.regione.x;
+        this.DURATA_ANIMAZIONE = config.animazioni.durata.transizione;
+        this.DURATA_INGRANDIMENTO = config.animazioni.durata.ingrandimento;
+        
         this.SCALA = {
-            PICCOLA: 0.3,
-            PIU_PICCOLA: 0.6,
-            NORMALE: 1.2,
-            GRANDE: 20.0,
-            PUNTO: 0.01
+            PICCOLA: config.layout.scala.piccola,
+            PIU_PICCOLA: config.layout.scala.piuPiccola,
+            NORMALE: config.layout.scala.normale,
+            GRANDE: config.layout.scala.grande,
+            PUNTO: config.layout.scala.punto
         };
+        
+        this.tempoInizioAnimazione = 0;
         this.inIngrandimento = false;
         this.inRiduzione = false;
-        this.DURATA_INGRANDIMENTO = 500;
         this.tempoInizioRiduzione = 0;
         this.gestoreCella = new GestoreCella();
         this.sovraffollamentoCorrente = 0;
@@ -90,6 +94,7 @@ class GestoreEsagoni {
             this.inRiduzione = true;
             this.tempoInizioRiduzione = millis();
             esagonoIngrandito.targetScale = this.SCALA.NORMALE;
+            esagonoIngrandito.disattivaAnimazione();
             
             gestoreSvg.impostaOpacita(0);
             
@@ -129,6 +134,7 @@ class GestoreEsagoni {
                             this.inIngrandimento = true;
                             this.tempoInizioIngrandimento = millis();
                             gestoreSvg.impostaOpacita(1);
+                            hex.attivaAnimazione();
                         }
                     }, 500);
                 }
@@ -207,7 +213,6 @@ class GestoreEsagoni {
         }
     }
 
-    // Funzione di easing per un'animazione più fluida
     easeInOutCubic(t) {
         return t < 0.5 
             ? 4 * t * t * t 

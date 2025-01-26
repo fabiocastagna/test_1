@@ -25,7 +25,7 @@ class GestoreSvg {
     }
 
     aggiornaOpacita() {
-        this.opacita = lerp(this.opacita, this.targetOpacita, 0.1);
+        this.opacita = lerp(this.opacita, this.targetOpacita, CONFIGURAZIONE.animazioni.easing);
     }
 
     visualizza(esagonoIngrandito) {
@@ -37,10 +37,11 @@ class GestoreSvg {
             this.aggiornaOpacita();
             
             push();
-            tint(255, this.opacita * 255); // Applica l'opacità all'immagine
+            tint(255, this.opacita * 255);
             
-            let svgWidth = esagonoIngrandito.raggio * esagonoIngrandito.scaleMultiplier * 2.85;
-            let svgHeight = (svgWidth * 595.28) / 841.89;
+            const config = CONFIGURAZIONE.svg.proporzioni;
+            let svgWidth = esagonoIngrandito.raggio * esagonoIngrandito.scaleMultiplier * config.larghezza;
+            let svgHeight = svgWidth * config.rapporto;
             let svgX = esagonoIngrandito.x - svgWidth / 2;
             let svgY = esagonoIngrandito.y - svgHeight / 2;
             
