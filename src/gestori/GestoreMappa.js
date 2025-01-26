@@ -327,6 +327,8 @@ class GestoreMappa {
         this.regioneSelezionata = esagono.regione;
         this.stato = StatoMappa.REGIONE;
         
+        this.gestoreTesto.gestoreRegione.setRegioneCliccata(true, esagono.regione);
+        
         let regioneEsagoni = this.esagoni.filter(e => e.regione === this.regioneSelezionata);
         let centerX = regioneEsagoni.reduce((sum, h) => sum + h.originalX, 0) / regioneEsagoni.length;
         let centerY = regioneEsagoni.reduce((sum, h) => sum + h.originalY, 0) / regioneEsagoni.length;

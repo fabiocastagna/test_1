@@ -51,18 +51,44 @@ class GestoreTestoRegione extends GestoreTestoBase {
     constructor(gestoreAnimazioni) {
         super(gestoreAnimazioni);
         this.testoCompletato = false;
+        this.nuovaRegione = null;
+        this.regioneCliccata = false;
     }
 
     aggiorna(regioneSelezionata) {
         if (!regioneSelezionata) {
             this.testoCompletato = false;
+            this.nuovaRegione = null;
+            this.regioneCliccata = false;
             return this.aggiornaTesto("");
+        }
+
+        if (this.regioneCliccata) {
+            this.testoCorrente = regioneSelezionata;
+            this.testoCompletato = true;
+            return regioneSelezionata;
+        }
+
+        if (regioneSelezionata !== this.stato.precedente && this.testoCorrente !== "") {
+            this.stato.inCancellazione = true;
+            this.nuovaRegione = regioneSelezionata;
+            return this.cancellaTesto();
+        }
+
+        if (this.stato.inCancellazione) {
+            const testoCanc = this.cancellaTesto();
+            if (testoCanc === "" && this.nuovaRegione) {
+                this.stato.precedente = this.nuovaRegione;
+                this.stato.testo = this.nuovaRegione;
+                this.testoCompletato = false;
+                this.nuovaRegione = null;
+            }
+            return testoCanc;
         }
 
         if (regioneSelezionata !== this.stato.precedente) {
             this.stato.precedente = regioneSelezionata;
             this.stato.testo = regioneSelezionata;
-            this.testoCorrente = "";
             this.testoCompletato = false;
         }
 
@@ -79,9 +105,19 @@ class GestoreTestoRegione extends GestoreTestoBase {
         return this.testoCorrente;
     }
 
+    setRegioneCliccata(clicked, regione) {
+        this.regioneCliccata = clicked;
+        if (clicked) {
+            this.testoCorrente = regione;  // Imposta immediatamente il testo completo
+            this.testoCompletato = true;
+        }
+    }
+
     reset() {
         super.reset();
         this.testoCompletato = false;
+        this.nuovaRegione = null;
+        this.regioneCliccata = false;
     }
 }
 
