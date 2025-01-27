@@ -51,4 +51,8 @@ class GestoreSvg {
             console.error('Errore nel disegno dell\'SVG:', error);
         }
     }
+}
+
+function preload() {
+    this.svg = loadImage('svg/cella.svg');
 } 
