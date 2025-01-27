@@ -20,11 +20,16 @@ const TESTO_CREDITI = "Dati elaborati a partire dalle Schede di Trasparenza degl
 
 function preload() {
   try {
-    tabella = loadTable('database/coordinatedacompletare.csv', 'csv', 'header');
+    tabella = loadTable('datasetcarceri.csv', 'csv', 'header');
     fontLegenda = loadFont('FONT/AeionMono-SemiBold.ttf');
     fontTitolo = loadFont('FONT/AeionMono-Bold.ttf');
   } catch (error) {
     console.error('Errore nel caricamento dei dati:', error);
+    console.error('Dettagli errore:', {
+      message: error.message,
+      stack: error.stack,
+      path: window.location.href
+    });
   }
 }
 
