@@ -12,10 +12,10 @@ const CONFIGURAZIONE = {
     animazioni: {
         velocita: {
             base: 0.05,      
-            testo: 50,
+            testo: 15,
             scala: 0.05,
             fluidita: 0.05,
-            cancellazione: 20
+            cancellazione: 10
         },
         durata: {
             transizione: 500,
@@ -60,8 +60,8 @@ const CONFIGURAZIONE = {
     },
     testi: {
         intro: {
-            riga1: "In Italia ci sono 189 carceri",
-            riga2: "187 sono sovraffollate"
+            riga1: "In Italia ci sono 189 carceri.",
+            riga2: "Di queste, 187 sono sovraffollate."
         }
     }
 }; 
