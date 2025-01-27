@@ -4,18 +4,35 @@ class GestoreSvg {
         this.isLoaded = false;
         this.opacita = 0;
         this.targetOpacita = 0;
+        this.tentativi = 0;
+        this.maxTentativi = 3;
         this.caricaSVG();
     }
 
     caricaSVG() {
-        loadImage('svg/cella.svg', 
+        const percorsoSVG = 'svg/cella.svg';
+        console.log('Tentativo di caricamento SVG:', percorsoSVG);
+        
+        loadImage(percorsoSVG, 
             (img) => {
-                console.log('SVG caricato con successo');
+                if (img.width === 0 || img.height === 0) {
+                    console.warn('SVG caricato ma invalido, riprovo...');
+                    if (this.tentativi < this.maxTentativi) {
+                        this.tentativi++;
+                        setTimeout(() => this.caricaSVG(), 1000);
+                    }
+                    return;
+                }
+                console.log('SVG caricato correttamente:', img.width, 'x', img.height);
                 this.svg = img;
                 this.isLoaded = true;
             },
             (err) => {
                 console.error('Errore nel caricamento dell\'SVG:', err);
+                if (this.tentativi < this.maxTentativi) {
+                    this.tentativi++;
+                    setTimeout(() => this.caricaSVG(), 1000);
+                }
             }
         );
     }
@@ -51,8 +68,4 @@ class GestoreSvg {
             console.error('Errore nel disegno dell\'SVG:', error);
         }
     }
-}
-
-function preload() {
-    this.svg = loadImage('svg/cella.svg');
 } 

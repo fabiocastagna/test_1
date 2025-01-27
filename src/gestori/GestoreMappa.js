@@ -26,19 +26,15 @@ class GestoreMappa {
     }
   
     caricaDati(tabella) {
-      // Calcola le dimensioni della mappa una sola volta
       this._cache.dimensioniMappa = this._calcolaDimensioniMappa(tabella);
       const { minX, maxX, minY, maxY, scaleFactor, offsetX, offsetY, raggio } = this._cache.dimensioniMappa;
 
-      // Prepara i dati per il sovraffollamento
       const sovraffollamenti = tabella.getColumn('sovraffollamento').map(Number);
       const maxSovraffollamento = Math.max(...sovraffollamenti);
       const minSovraffollamento = Math.min(...sovraffollamenti);
       
-      // Mappa per contare gli esagoni per regione
       let contatoreRegioni = new Map();
       
-      // Crea gli esagoni
       for (let riga of tabella.rows) {
           const esagono = this._creaEsagono(riga, {
               minX, maxX, minY, maxY, 
@@ -50,17 +46,14 @@ class GestoreMappa {
           
           this.esagoni.push(esagono);
           
-          // Aggiorna la cache degli esagoni per regione
           if (!this._cache.esagoniPerRegione.has(esagono.regione)) {
               this._cache.esagoniPerRegione.set(esagono.regione, []);
           }
           this._cache.esagoniPerRegione.get(esagono.regione).push(esagono);
       }
 
-      // Calcola e cache i centri delle regioni
       this._calcolaCentriRegioni();
       
-      // Passa gli esagoni al GestoreTesto
       this.gestoreTesto.setEsagoni(this.esagoni);
     }
   
@@ -111,7 +104,6 @@ class GestoreMappa {
       let spazio = parseFloat(riga.get('spazio').replace(',', '.'));
       let hexId = riga.get('hexagon_id');
       
-      // Incrementa il contatore per questa regione
       if (!contatoreRegioni.has(regione)) {
           contatoreRegioni.set(regione, 1);
       } else {
@@ -156,21 +148,18 @@ class GestoreMappa {
   
     calcolaColore(sovraffollamento, min, max) {
         if (sovraffollamento <= 100) {
-            // Da bianco a giallo (0-100%)
             return lerpColor(
                 color(this.CONFIG.colori.esagonoBase),
                 color(this.CONFIG.colori.esagonoMedio),
                 map(sovraffollamento, 0, 100, 0, 1)
             );
         } else if (sovraffollamento <= 150) {
-            // Da giallo a rosso (100-150%)
             return lerpColor(
                 color(this.CONFIG.colori.esagonoMedio),
                 color(this.CONFIG.colori.esagonoAlto),
                 map(sovraffollamento, 100, 150, 0, 1)
             );
         } else {
-            // Oltre 150% resta rosso
             return color(this.CONFIG.colori.esagonoAlto);
         }
     }
@@ -201,7 +190,6 @@ class GestoreMappa {
         for (let esagono of this.esagoni) {
             esagono.aggiorna();
             this.aggiornaStatoEsagono(esagono);
-            // Aggiorna la scala con una transizione fluida
             if (esagono.scaleMultiplier !== esagono.targetScale) {
                 esagono.scaleMultiplier = lerp(esagono.scaleMultiplier, esagono.targetScale, 0.1);
             }
@@ -278,7 +266,6 @@ class GestoreMappa {
     }
 
     _gestisciClickRegione(mouseX, mouseY) {
-        // Click sulla mini-Italia
         let italiaCliccata = this.esagoni.some(esagono => {
             if (esagono.regione !== this.regioneSelezionata) {
                 let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
@@ -292,7 +279,6 @@ class GestoreMappa {
             return;
         }
 
-        // Click su un esagono della regione
         for (let esagono of this.esagoni) {
             if (esagono.regione === this.regioneSelezionata) {
                 let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
@@ -377,7 +363,6 @@ class GestoreMappa {
     }
 
     disegna() {
-        // Prima disegna gli esagoni non in hover
         for (let esagono of this.esagoni) {
             if ((esagono.regione !== this.regioneHover && esagono !== this.cellaHover) || 
                 !this.hoverAttivo) {
@@ -385,7 +370,6 @@ class GestoreMappa {
             }
         }
 
-        // Poi disegna gli esagoni in hover
         for (let esagono of this.esagoni) {
             if ((esagono.regione === this.regioneHover || esagono === this.cellaHover) && 
                 this.hoverAttivo) {
@@ -393,7 +377,6 @@ class GestoreMappa {
             }
         }
 
-        // Disegna il testo
         this.gestoreTesto.disegna();
     }
 
