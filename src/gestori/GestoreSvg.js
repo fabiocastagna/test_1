@@ -10,7 +10,7 @@ class GestoreSvg {
     }
 
     caricaSVG() {
-        const percorsoSVG = 'svg/cella.svg';
+        const percorsoSVG = 'SVG/cella.svg';
         console.log('Tentativo di caricamento SVG:', percorsoSVG);
         
         loadImage(percorsoSVG, 
