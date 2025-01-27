@@ -181,45 +181,72 @@ class GestoreTestoRegione extends GestoreTestoBase {
         this.indiceCarattereCorrente = 0;
     }
 }
-
 class GestoreTestoCarcere extends GestoreTestoBase {
     constructor(gestoreAnimazioni, datiCarceri) {
         super(gestoreAnimazioni);
         this.datiCarceri = datiCarceri;
         this.esagonoCliccato = null;
+        this.ultimoEsagonoSelezionato = null;
+        this.nuovoTestoInAttesa = null;
     }
 
     aggiorna(regioneSelezionata, esagonoSelezionato) {
+        // Reset completo
         if (!regioneSelezionata || !esagonoSelezionato) {
-            return "";
+            this.esagonoCliccato = null;
+            this.ultimoEsagonoSelezionato = null;
+            this.nuovoTestoInAttesa = null;
+            return this.aggiornaTesto("");
         }
 
-        if (this.esagonoCliccato?.scaleMultiplier > 1.5) {
-            // Mantieni il testo dell'esagono cliccato, ignora completamente l'hover
-            return this.stato.testo;
-        }
-
+        // Gestione click/ingrandimento
         if (esagonoSelezionato.scaleMultiplier > 1.5) {
-            this.esagonoCliccato = esagonoSelezionato;
+            if (!this.esagonoCliccato) {
+                const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
+                const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
+                const datiCarcere = this.datiCarceri.get(hexId);
+                this.stato.testo = datiCarcere ? datiCarcere.carcere : "";
+                this.esagonoCliccato = esagonoSelezionato;
+            }
+            return this.aggiornaTesto(this.stato.testo);
+        }
+
+        // Reset quando si torna alla vista normale
+        if (this.esagonoCliccato) {
+            this.esagonoCliccato = null;
+            this.ultimoEsagonoSelezionato = null;
+            this.nuovoTestoInAttesa = null;
+            return this.aggiornaTesto("");
+        }
+
+        // Gestione hover solo se non c'è un esagono cliccato
+        if (!this.esagonoCliccato && esagonoSelezionato !== this.ultimoEsagonoSelezionato) {
             const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
             const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
             const datiCarcere = this.datiCarceri.get(hexId);
-            this.stato.testo = datiCarcere ? datiCarcere.carcere : "";
-            return this.stato.testo;
-        }
+            const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
 
-        this.esagonoCliccato = null;
-        const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
-        const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
-        const datiCarcere = this.datiCarceri.get(hexId);
-        const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
-
-        if (esagonoSelezionato !== this.stato.precedente) {
-            if (this.stato.testo !== "" && nuovoTesto !== this.stato.testo) {
+            if (nuovoTesto !== this.stato.testo && this.testoCorrente !== "") {
                 this.stato.inCancellazione = true;
+                this.nuovoTestoInAttesa = nuovoTesto;
+                return this.cancellaTesto();
             }
-            this.stato.precedente = esagonoSelezionato;
-            this.stato.testo = nuovoTesto;
+
+            if (this.stato.inCancellazione) {
+                const testoCanc = this.cancellaTesto();
+                if (testoCanc === "" && this.nuovoTestoInAttesa) {
+                    this.stato.precedente = esagonoSelezionato;
+                    this.stato.testo = this.nuovoTestoInAttesa;
+                    this.nuovoTestoInAttesa = null;
+                }
+                return testoCanc;
+            }
+
+            this.ultimoEsagonoSelezionato = esagonoSelezionato;
+            if (nuovoTesto !== this.stato.testo) {
+                this.stato.precedente = esagonoSelezionato;
+                this.stato.testo = nuovoTesto;
+            }
         }
 
         return this.aggiornaTesto(this.stato.testo);
@@ -228,6 +255,8 @@ class GestoreTestoCarcere extends GestoreTestoBase {
     reset() {
         super.reset();
         this.esagonoCliccato = null;
+        this.ultimoEsagonoSelezionato = null;
+        this.nuovoTestoInAttesa = null;
     }
 }
 

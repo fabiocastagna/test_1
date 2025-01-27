@@ -59,9 +59,9 @@ class GestoreEsagoni {
 
         esagoniItalia.forEach(hex => {
             this.inizializzaPosizioniOriginali(hex);
-            hex.targetX = hex.originalX * scala + offsetX;
-            hex.targetY = hex.originalY * scala + height * 0.35;
-            hex.targetScale = scala;
+            hex.targetX = hex.originalX * 0.3 + width * -0.01;
+            hex.targetY = hex.originalY * 0.3 + height * 0.35;
+            hex.targetScale = 0.3;
         });
     }
 
@@ -137,18 +137,25 @@ class GestoreEsagoni {
                             hex.attivaAnimazione();
                         }
                     }, 500);
+                } else {
+                    const offsetXFromCenter = hex.originalX - centro.x;
+                    const offsetYFromCenter = hex.originalY - centro.y;
+                    hex.targetX = width * 0.15 + offsetXFromCenter * this.SCALA.PIU_PICCOLA;
+                    hex.targetY = height * 0.5 + offsetYFromCenter * this.SCALA.PIU_PICCOLA;
+                    hex.targetScale = this.SCALA.PIU_PICCOLA;
                 }
             });
 
-            const esagoniNonSelezionati = regioneEsagoni.filter(hex => hex !== esagonoCliccato);
-            this.spostaEsagoniRegione(
-                esagoniNonSelezionati, 
-                centro, 
-                this.SCALA.PIU_PICCOLA,
-                this.OFFSET_REGIONE_X
+            const esagoniItalia = this.gestoreMappa.esagoni.filter(e => 
+                e.regione !== this.gestoreMappa.regioneSelezionata
             );
             
-            this.spostaEsagoniItalia(this.SCALA.PICCOLA, this.OFFSET_ITALIA_X);
+            esagoniItalia.forEach(hex => {
+                this.inizializzaPosizioniOriginali(hex);
+                hex.targetX = hex.originalX * 0.3 + width * -0.25;
+                hex.targetY = hex.originalY * 0.3 + height * 0.35;
+                hex.targetScale = 0.3;
+            });
 
             this.gestoreTesto.setCarceraRimpicciolito(false);
         }

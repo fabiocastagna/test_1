@@ -226,7 +226,7 @@ class GestoreMappa {
   
         let targetHoverState = 0;
         if (this.regioneSelezionata) {
-            targetHoverState = this.regioneHover === esagono ? 1 : 0;
+            targetHoverState = (this.regioneHover === esagono || this.esagonoCliccato === esagono) ? 1 : 0;
         } else {
             targetHoverState = esagono.regione === this.regioneHover ? 1 : 0;
         }
@@ -234,7 +234,11 @@ class GestoreMappa {
   
         let targetOpacita = 255;
         if (this.regioneSelezionata) {
-            targetOpacita = esagono.regione === this.regioneSelezionata ? 255 : 30;
+            if (this.esagonoCliccato === esagono) {
+                targetOpacita = 255;
+            } else {
+                targetOpacita = esagono.regione === this.regioneSelezionata ? 255 : 30;
+            }
         } else if (this.regioneHover) {
             targetOpacita = esagono.regione === this.regioneHover ? 255 : 100;
         }
@@ -298,16 +302,19 @@ class GestoreMappa {
 
     _gestisciClickCella(mouseX, mouseY) {
         if (this.gestoreEsagoni.esagonoIngrandito) {
-            let esagono = this.gestoreEsagoni.esagonoIngrandito;
-            let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-            let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier;
+            let regioneEsagoni = this.getEsagoniRegione(this.regioneSelezionata);
             
-            if (distanza < raggioEffettivo * 1.5) {
-                this.stato = StatoMappa.REGIONE;
-                this.gestoreEsagoni.gestisciClickEsagonoRegione(esagono);
-                this.esagonoCliccato = null;
-                this.cellaHover = null;
-                this.gestoreTesto.resetStatoCompleto();
+            for (let esagono of regioneEsagoni) {
+                let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
+                let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier;
+                
+                if (distanza < raggioEffettivo * 1.5) {
+                    this.stato = StatoMappa.REGIONE;
+                    this.gestoreEsagoni.gestisciClickEsagonoRegione(this.gestoreEsagoni.esagonoIngrandito);
+                    this.cellaHover = null;
+                    this.gestoreTesto.resetStatoCompleto();
+                    return;
+                }
             }
         }
     }
@@ -340,7 +347,7 @@ class GestoreMappa {
         });
         
         this.esagoni.filter(e => e.regione !== this.regioneSelezionata).forEach(hex => {
-            hex.targetX = hex.originalX * 0.3 + width * 0.1;
+            hex.targetX = hex.originalX * 0.3 + width * -0.01;
             hex.targetY = hex.originalY * 0.3 + height * 0.35;
             hex.targetScale = 0.3;
             hex.disattivaAnimazione();
@@ -383,6 +390,10 @@ class GestoreMappa {
     trovaCellaHover() {
         if (!this.regioneSelezionata || !this.gestoreEsagoni.esagonoIngrandito) {
             return null;
+        }
+
+        if (this.esagonoCliccato) {
+            return this.esagonoCliccato;
         }
 
         const regioneEsagoni = this.esagoni.filter(e => e.regione === this.regioneSelezionata);
