@@ -9,7 +9,7 @@ let caricamentoDatiCompletato = false;
 
 function preload() {
   try {
-    tabella = loadTable('database/coordinate_dacompletare.csv', 'csv', 'header');
+    tabella = loadTable('database/coordinatedacompletare.csv', 'csv', 'header');
     fontLegenda = loadFont('FONT/AeionMono-SemiBold.ttf');
   } catch (error) {
     console.error('Errore nel caricamento dei dati:', error);
