@@ -91,7 +91,7 @@ function draw() {
 function disegnaTitolo() {
   push();
   textFont(fontTitolo);
-  textSize(24);
+  textSize(32);
   textAlign(CENTER, TOP);
   fill(255, opacitaTitolo);
   text("Chiusi Dentro: il sovraffollamento delle carceri Italiane", width/2, 40);
