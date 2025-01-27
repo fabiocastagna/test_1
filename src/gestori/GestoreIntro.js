@@ -2,7 +2,7 @@ class GestoreIntro {
     constructor(gestoreAnimazioni) {
         this.gestoreAnimazioni = gestoreAnimazioni;
         this.font = loadFont('FONT/AeionMono-Bold.ttf');
-        this.attivo = false;
+        this.attivo = true;
         
         const config = CONFIGURAZIONE;
         this.testoRiga1 = config.testi.intro.riga1;
