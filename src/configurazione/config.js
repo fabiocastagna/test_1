@@ -15,7 +15,8 @@ const CONFIGURAZIONE = {
             testo: 15,
             scala: 0.05,
             fluidita: 0.05,
-            cancellazione: 10
+            cancellazione: 10,
+            scrittura: 40
         },
         durata: {
             transizione: 500,
@@ -61,7 +62,7 @@ const CONFIGURAZIONE = {
     testi: {
         intro: {
             riga1: "In Italia ci sono 189 carceri.",
-            riga2: "Di queste, 187 sono sovraffollate."
+            riga2: "Di queste, 153 sono sovraffollate."
         }
     }
 }; 

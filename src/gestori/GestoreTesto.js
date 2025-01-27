@@ -302,10 +302,10 @@ class GestoreTestoSovraffollamento extends GestoreTestoBase {
         return [
             this.TESTI.TASSO_AFFOLLAMENTO,
             `${tasso}${this.TESTI.UNITA_PERCENTUALE}`,
-            this.TESTI.PERSONE_STANZA,
-            `${persone}`,
             this.TESTI.SPAZIO_PERSONA,
-            `${spazio} ${this.TESTI.UNITA_SPAZIO}`
+            `${spazio} ${this.TESTI.UNITA_SPAZIO}`,
+            this.TESTI.PERSONE_STANZA,
+            `${persone}`
         ].join('\n');
     }
 

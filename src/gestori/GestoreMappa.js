@@ -165,7 +165,6 @@ class GestoreMappa {
     }
   
     aggiorna() {
-        // Aggiorna il fade in
         if (this.fadeInProgress < 1) {
             this.fadeInProgress = min(this.fadeInProgress + 0.0083, 1);
         }
@@ -388,7 +387,6 @@ class GestoreMappa {
     }
 
     trovaCellaHover() {
-        // Se c'è già un esagono ingrandito, disabilita l'hover
         if (this.gestoreEsagoni.esagonoIngrandito) {
             return this.gestoreEsagoni.esagonoIngrandito;
         }

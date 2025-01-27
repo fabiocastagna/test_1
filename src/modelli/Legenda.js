@@ -33,8 +33,8 @@ class Legenda {
         this.font = font;
         this.altezzaRiga = 20;
         this.esagoni = [
-            new Esagono(width / 12, height - 150, 15, "regione1", color("red"), "1"),
-            new Esagono(width / 12, height - 100, 15, "regione2", color("white"), "2")
+            new Esagono(width / 13 + 15, height - 150, 15, "regione1", color("red"), "1"),
+            new Esagono(width / 13 + 15, height - 100, 15, "regione2", color("white"), "2")
         ];
         
         this.esagoni[1].sovraffollamento = 150;
@@ -87,22 +87,26 @@ class Legenda {
             if (this.lunghezzaLinea > 0) {
                 stroke(255);
                 strokeWeight(3);
-                line(width / 12, height - 150, width / 12, height - 150 + this.lunghezzaLinea);
+                line(width / 13 + 15, height - 150, width / 13 + 15, height - 150 + this.lunghezzaLinea);
                 noStroke();
             }
 
             if (this.opacitaPrimoEsagono > 0) {
+                this.esagoni[0].x = width / 13 + 15;
+                this.esagoni[0].y = height - 150;
                 this.esagoni[0].opacita = this.opacitaPrimoEsagono;
                 this.esagoni[0].disegna();
                 fill(255);
-                text(this.testoEsagoniCorrente[0], width / 12 + 35, height - 150);
+                text(this.testoEsagoniCorrente[0], width / 13 + 45, height - 152);
             }
             
             if (this.opacitaSecondoEsagono > 0) {
+                this.esagoni[1].x = width / 13 + 15;
+                this.esagoni[1].y = height - 100;
                 this.esagoni[1].opacita = this.opacitaSecondoEsagono;
                 this.esagoni[1].disegna();
                 fill(255);
-                text(this.testoEsagoniCorrente[1], width / 12 + 35, height - 100);
+                text(this.testoEsagoniCorrente[1], width / 13 + 45, height - 102);
             }
         }
         

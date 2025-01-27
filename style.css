@@ -48,8 +48,3 @@ html, body {
   canvas {
     display: block;
   }
-  .start-button {
-    font-size: 16px;
-    padding: 10px 20px;
-    cursor: pointer;
-  }

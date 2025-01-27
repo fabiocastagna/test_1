@@ -22,6 +22,8 @@ class GestoreIntro {
         this.ultimaCancellazione = 0;
         this.velocitaCancellazione = config.animazioni.velocita.cancellazione;
         this.opacitaBottoneHover = 255;
+        this.velocitaScrittura = config.animazioni.velocita.scrittura || 50; // millisecondi tra ogni carattere
+        this.ultimaScrittura = 0;
     }
 
     aggiorna() {
@@ -63,16 +65,20 @@ class GestoreIntro {
             return;
         }
 
-        this.testoCorrente1 = this.gestoreAnimazioni.animaTesto(
-            this.testoCorrente1,
-            this.testoRiga1
-        );
-
-        if (this.testoCorrente1 === this.testoRiga1) {
-            this.testoCorrente2 = this.gestoreAnimazioni.animaTesto(
-                this.testoCorrente2,
-                this.testoRiga2
+        let tempoCorrente = millis();
+        if (tempoCorrente - this.ultimaScrittura > this.velocitaScrittura) {
+            this.testoCorrente1 = this.gestoreAnimazioni.animaTesto(
+                this.testoCorrente1,
+                this.testoRiga1
             );
+
+            if (this.testoCorrente1 === this.testoRiga1) {
+                this.testoCorrente2 = this.gestoreAnimazioni.animaTesto(
+                    this.testoCorrente2,
+                    this.testoRiga2
+                );
+            }
+            this.ultimaScrittura = tempoCorrente;
         }
 
         if (this.testoCorrente2 === this.testoRiga2) {

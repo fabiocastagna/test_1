@@ -14,8 +14,9 @@ let opacitaInfo = 255;
 let infoCancellazione = false;
 let infoCliccato = false;
 let mostraCrediti = false;
-const VELOCITA_INFO = 15;
-const VELOCITA_CREDITI = 2;
+let indiceTesto = 0;
+const VELOCITA_INFO = 0.1;
+const VELOCITA_CREDITI = 0.1;
 const TESTO_CREDITI = "Dati elaborati a partire dalle Schede di Trasparenza degli Istituiti Penitenziari del Ministero della Giustizia ×";
 
 function preload() {
@@ -91,35 +92,39 @@ function draw() {
 function disegnaTitolo() {
   push();
   textFont(fontTitolo);
-  textSize(32);
   textAlign(CENTER, TOP);
   fill(255, opacitaTitolo);
-  text("Chiusi Dentro: il sovraffollamento delle carceri Italiane", width/2, 40);
+  textSize(32);
+  text("Chiusi Dentro", width/2, height / 25);
+  textSize(26);
+  text("il sovraffollamento delle carceri Italiane", width/2, height / 12);
   pop();
 }
+
 
 function aggiornaInfo() {
   let tempoCorrente = millis();
   if (tempoCorrente - ultimoAggiornamentoInfo > VELOCITA_INFO) {
-    if (infoCancellazione) {
+    if (!infoCliccato) {
+      if (testoInfoCorrente.length < "Dati".length) {
+        testoInfoCorrente += "Dati".charAt(testoInfoCorrente.length);
+        ultimoAggiornamentoInfo = tempoCorrente;
+      }
+    } else if (mostraCrediti && !infoCancellazione) {
+      if (indiceTesto < TESTO_CREDITI.length) {
+        testoInfoCorrente = TESTO_CREDITI.substring(0, indiceTesto + 1);
+        indiceTesto++;
+        ultimoAggiornamentoInfo = tempoCorrente;
+      }
+    } else if (infoCancellazione) {
       if (testoInfoCorrente.length > 0) {
-        testoInfoCorrente = testoInfoCorrente.slice(0, -1);
+        testoInfoCorrente = testoInfoCorrente.substring(0, testoInfoCorrente.length - 1);
         ultimoAggiornamentoInfo = tempoCorrente;
       } else {
         infoCancellazione = false;
-        infoCliccato = true;
-        mostraCrediti = true;
+        mostraCrediti = false;
+        infoCliccato = false;
         testoInfoCorrente = "";
-      }
-    } else if (!infoCliccato) {
-      if (testoInfoCorrente.length < "Fonti".length) {
-        testoInfoCorrente += "Fonti".charAt(testoInfoCorrente.length);
-        ultimoAggiornamentoInfo = tempoCorrente;
-      }
-    } else if (mostraCrediti) {
-      if (testoInfoCorrente.length < TESTO_CREDITI.length) {
-        testoInfoCorrente += TESTO_CREDITI.charAt(testoInfoCorrente.length);
-        ultimoAggiornamentoInfo = tempoCorrente;
       }
     }
   }
@@ -196,17 +201,17 @@ function mousePressed() {
   if (mostraCrediti && 
       mouseX > window.xPosition - 10 && mouseX < window.xPosition + 10 &&
       mouseY > height - 30 && mouseY < height - 10) {
-    mostraCrediti = false;
-    infoCliccato = false;
-    infoCancellazione = false;
-    testoInfoCorrente = "Fonti";
+    infoCancellazione = true;
     return;
   }
   
   let mouseOverInfo = mouseX > width - 60 && mouseX < width - 20 &&
                       mouseY > height - 40 && mouseY < height - 10;
-  if (mouseOverInfo && testoInfoCorrente === "Fonti") {
-    infoCancellazione = true;
+  if (mouseOverInfo && testoInfoCorrente === "Dati") {
+    infoCliccato = true;
+    mostraCrediti = true;
+    indiceTesto = 0;
+    testoInfoCorrente = "";
     return;
   }
   
