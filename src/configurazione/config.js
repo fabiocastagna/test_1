@@ -3,7 +3,7 @@ const CONFIGURAZIONE = {
       sfondo: "black",
       esagonoBase: "white",
       esagonoMedio: "yellow",
-      esagonoAlto: "red"
+      esagonoAlto: "rgb(230, 50, 50)"
     },
     margini: {
       verticale: 0.8,

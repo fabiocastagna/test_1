@@ -1,1 +1,28 @@
-!\[preview\](readmesketch.png) CHIUSI DENTRO: Una rappresentazione visiva del sovraffollamento delle carceri in Italia Questo progetto è stato realizzato dal Gruppo 6 (che potete vedere qui sopra) del Laboratorio di Information Design, C1, A.A 2024-2025. Membri del team ed i loro ruoli: Fabio Castagna: Programmazione del sito, Porzione di script riguardante la posizione degli esagoni con coordinate Lorenzo Gerosa: Programmazione del sito, con particolare apporto alla Intro e alla gestione delle animazioni dei testi Dimitri Maioglio: Art direction, in particolare Concept art delle celle e della mappa (trama esagonale), Posizionamento testi Rebecca Mazza: Creazione ed elaborazione del Dataset, Testi, Art direction, in particolare concept art per gli sfondi Mattia Paluello: Programmazione del sito, con focus sulla logica generale del progetto, Risoluzione problemi inerenti al codice Martina Santolini: Creazione Testi, Creazione ed elaborazione del Dataset, Speaker Software utilizzati: GitHub Figma VisualStudio Procreate Illustrator Photoshop L’idea dietro al nostro sito web nasce dalla volontà di portare alla luce un problema sociale totalmente ignorato e invisibile in Italia. Abbiamo voluto trasmettere la sensazione di soffocamento ed angoscia che migliaia di detenuti in tutto il paese provano ogni giorno all’interno di infrastrutture sovraffollate e fatiscenti.
+# CHIUSI DENTRO
+Una rappresentazione visiva del sovraffollamento delle carceri in Italia
+
+![preview](readmesketch.png)
+
+Questo progetto è stato realizzato dal Gruppo 6 del Laboratorio di Information Design, C1, A.A 2024-2025.
+
+## Team
+I membri del team e i loro ruoli:
+
+
+- **Fabio Castagna**: Definizione delle coordinate degli esagoni, risoluzione dei problemi inerenti al codice.
+- **Lorenzo Gerosa**: Introduzione e gestione delle animazioni dei testi.
+- **Dimitri Maioglio**: Concept art delle celle e della trama esagonale della mappa, layout dei testi.
+- **Rebecca Mazza**: Ricerca e rielaborazione dei dati, stesura dei testi, layout dei testi.
+- **Mattia Paluello**: Logica delle funzioni e organizzazione interna del progetto, organizzazione del layout degli elementi, risoluzione dei problemi inerenti al codice, stesura dei testi.
+- **Martina Santolini**: Ricerca e rielaborazione dei dati, stesura dei Testi, Speaker.
+
+## Software utilizzati
+- GitHub
+- Figma
+- VisualStudio
+- Procreate
+- Illustrator
+- Photoshop
+
+## Il Progetto
+L'idea dietro al nostro sito web nasce dalla volontà di portare alla luce un problema sociale totalmente ignorato e invisibile in Italia. Abbiamo voluto trasmettere la sensazione di soffocamento ed angoscia che migliaia di detenuti in tutto il paese provano ogni giorno all'interno di infrastrutture sovraffollate e fatiscenti.

@@ -56,6 +56,7 @@ class GestoreTestoRegione extends GestoreTestoBase {
         this.descrizione = "";
         this.testoFormattato = [];
         this.indiceCarattereCorrente = 0;
+        this.attesaCompletata = false;
     }
 
     formattaTesto(testo, maxWidth) {
@@ -188,72 +189,87 @@ class GestoreTestoCarcere extends GestoreTestoBase {
         this.esagonoCliccato = null;
         this.ultimoEsagonoSelezionato = null;
         this.nuovoTestoInAttesa = null;
+        this.testoCompletato = false;
+        this.indiceCarattereCorrente = 0;
     }
 
     aggiorna(regioneSelezionata, esagonoSelezionato) {
-        // Reset completo
         if (!regioneSelezionata || !esagonoSelezionato) {
             this.esagonoCliccato = null;
             this.ultimoEsagonoSelezionato = null;
             this.nuovoTestoInAttesa = null;
+            this.testoCompletato = false;
+            this.indiceCarattereCorrente = 0;
             return this.aggiornaTesto("");
         }
 
-        // Gestione click/ingrandimento
-        if (esagonoSelezionato.scaleMultiplier > 1.5) {
+        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
             if (!this.esagonoCliccato) {
                 const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
                 const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
                 const datiCarcere = this.datiCarceri.get(hexId);
                 this.stato.testo = datiCarcere ? datiCarcere.carcere : "";
                 this.esagonoCliccato = esagonoSelezionato;
+                this.testoCompletato = false;
+                this.indiceCarattereCorrente = 0;
             }
-            return this.aggiornaTesto(this.stato.testo);
+
+            if (!this.testoCompletato) {
+                if (this.indiceCarattereCorrente < this.stato.testo.length) {
+                    this.indiceCarattereCorrente++;
+                    this.testoCorrente = this.stato.testo.substring(0, this.indiceCarattereCorrente);
+                } else {
+                    this.testoCompletato = true;
+                }
+            }
+            
+            return this.testoCompletato ? this.stato.testo : this.testoCorrente;
         }
 
-        // Reset quando si torna alla vista normale
         if (this.esagonoCliccato) {
             this.esagonoCliccato = null;
             this.ultimoEsagonoSelezionato = null;
             this.nuovoTestoInAttesa = null;
+            this.testoCompletato = false;
+            this.indiceCarattereCorrente = 0;
             return this.aggiornaTesto("");
         }
 
-        // Gestione hover solo se non c'è un esagono cliccato
-        if (!this.esagonoCliccato && esagonoSelezionato !== this.ultimoEsagonoSelezionato) {
+        if (!this.esagonoCliccato && esagonoSelezionato?.scaleMultiplier <= 1.5) {
             const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
             const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
             const datiCarcere = this.datiCarceri.get(hexId);
             const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
 
-            if (nuovoTesto !== this.stato.testo && this.testoCorrente !== "") {
-                this.stato.inCancellazione = true;
-                this.nuovoTestoInAttesa = nuovoTesto;
-                return this.cancellaTesto();
-            }
-
-            if (this.stato.inCancellazione) {
-                const testoCanc = this.cancellaTesto();
-                if (testoCanc === "" && this.nuovoTestoInAttesa) {
-                    this.stato.precedente = esagonoSelezionato;
-                    this.stato.testo = this.nuovoTestoInAttesa;
-                    this.nuovoTestoInAttesa = null;
-                }
-                return testoCanc;
-            }
-
-            this.ultimoEsagonoSelezionato = esagonoSelezionato;
             if (nuovoTesto !== this.stato.testo) {
-                this.stato.precedente = esagonoSelezionato;
+                if (this.testoCorrente !== "") {
+                    this.stato.inCancellazione = true;
+                    this.nuovoTestoInAttesa = nuovoTesto;
+                    return this.cancellaTesto();
+                }
                 this.stato.testo = nuovoTesto;
+                this.testoCompletato = false;
+                this.indiceCarattereCorrente = 0;
+            }
+
+            if (!this.testoCompletato) {
+                if (this.indiceCarattereCorrente < this.stato.testo.length) {
+                    this.indiceCarattereCorrente++;
+                    this.testoCorrente = this.stato.testo.substring(0, this.indiceCarattereCorrente);
+                    return this.testoCorrente;
+                } else {
+                    this.testoCompletato = true;
+                }
             }
         }
 
-        return this.aggiornaTesto(this.stato.testo);
+        return this.testoCompletato ? this.stato.testo : this.testoCorrente;
     }
 
     reset() {
         super.reset();
+        this.testoCompletato = false;
+        this.indiceCarattereCorrente = 0;
         this.esagonoCliccato = null;
         this.ultimoEsagonoSelezionato = null;
         this.nuovoTestoInAttesa = null;

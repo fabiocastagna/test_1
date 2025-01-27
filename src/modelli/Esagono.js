@@ -32,7 +32,7 @@ class Esagono {
       this.y = lerp(this.y, this.targetY, 0.1);
       
       if (this.tempoClick > 0 && !this.spostamentoAttivo && !this.inUscita) {
-        if (millis() - this.tempoClick > 5000) {
+        if (millis() - this.tempoClick > 3000) {
           this.spostamentoAttivo = true;
           if (this.sovraffollamento > 100) {
             this.targetSpostamentoBianco = map(this.sovraffollamento, 100, 150, 0, this.raggio * 0.25);
@@ -91,7 +91,7 @@ class Esagono {
       translate(this.x, this.y);
       rotate(this.rotazione);
       
-      fill('red');
+      fill(color(255, 50, 50, 200));
       beginShape();
       for (let angolo = 0; angolo < 6; angolo++) {
         let verticeX = this.raggio * this.scaleMultiplier * cos(angolo * PI / 3);
@@ -142,8 +142,8 @@ class Esagono {
       
       strokeWeight(0);
       
-      let targetOffsetX = -5.28 * this.scaleMultiplier;
-      let targetOffsetY = -5.2 * this.scaleMultiplier;
+      let targetOffsetX = -4.8 * this.scaleMultiplier;
+      let targetOffsetY = -5.6 * this.scaleMultiplier;
       let currentOffsetX = 0;
       let currentOffsetY = 0;
       
@@ -158,7 +158,6 @@ class Esagono {
       fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita));
       ellipse(currentOffsetX, currentOffsetY, this.raggio * this.scaleMultiplier * dimensioneInterna);
       
-      // Calcola la dimensione del cerchio esterno in base allo scaleMultiplier
       let dimensioneEsterna = map(this.scaleMultiplier, 1, 20, 1, 0.65);
       fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita * 0.4));
       ellipse(currentOffsetX, currentOffsetY, this.raggio * this.scaleMultiplier * dimensioneEsterna);

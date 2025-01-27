@@ -167,7 +167,7 @@ class GestoreMappa {
     aggiorna() {
         // Aggiorna il fade in
         if (this.fadeInProgress < 1) {
-            this.fadeInProgress = min(this.fadeInProgress + 0.01, 400);
+            this.fadeInProgress = min(this.fadeInProgress + 0.0083, 1);
         }
 
         let nuovaRegioneHover = null;
@@ -388,19 +388,21 @@ class GestoreMappa {
     }
 
     trovaCellaHover() {
-        if (!this.regioneSelezionata || !this.gestoreEsagoni.esagonoIngrandito) {
-            return null;
+        // Se c'è già un esagono ingrandito, disabilita l'hover
+        if (this.gestoreEsagoni.esagonoIngrandito) {
+            return this.gestoreEsagoni.esagonoIngrandito;
         }
 
-        if (this.esagonoCliccato) {
-            return this.esagonoCliccato;
+        if (!this.regioneSelezionata) {
+            return null;
         }
 
         const regioneEsagoni = this.esagoni.filter(e => e.regione === this.regioneSelezionata);
         
         for (let esagono of regioneEsagoni) {
             let distanza = dist(mouseX, mouseY, esagono.x, esagono.y);
-            let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier * 1.5;
+            let areaHover = esagono.scaleMultiplier > 1.5 ? 20.0 : 1.5;
+            let raggioEffettivo = esagono.raggio * esagono.scaleMultiplier * areaHover;
             
             if (distanza < raggioEffettivo) {
                 return esagono;
