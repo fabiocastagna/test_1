@@ -2,12 +2,15 @@ let gestoreMappa;
 let gestoreSvg;
 let gestoreAnimazioni;
 let gestoreIntro;
+let legenda;
 let tabella;
+let fontLegenda;
 let caricamentoDatiCompletato = false;
 
 function preload() {
   try {
-    tabella = loadTable('database/coordinate_test.csv', 'csv', 'header');
+    tabella = loadTable('database/coordinate_dacompletare.csv', 'csv', 'header');
+    fontLegenda = loadFont('FONT/AeionMono-SemiBold.ttf');
   } catch (error) {
     console.error('Errore nel caricamento dei dati:', error);
   }
@@ -16,13 +19,15 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   inizializzaGestori();
+  legenda = new Legenda(fontLegenda);
 }
 
 function inizializzaGestori() {
   try {
     gestoreAnimazioni = new GestoreAnimazioni();
     gestoreIntro = new GestoreIntro(gestoreAnimazioni);
-    gestoreMappa = new GestoreMappa(gestoreAnimazioni);
+    legenda = new Legenda(fontLegenda);
+    gestoreMappa = new GestoreMappa(gestoreAnimazioni, legenda);
     if (tabella) {
       gestoreMappa.caricaDati(tabella);
       caricamentoDatiCompletato = true;
@@ -51,6 +56,9 @@ function draw() {
       gestoreSvg?.visualizza(esagonoIngrandito);
       gestoreMappa?.gestoreEsagoni?.aggiornaIngrandimento();
     }
+    
+    // Disegna la legenda
+    legenda.disegna();
   }
 }
 

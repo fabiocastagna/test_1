@@ -35,7 +35,7 @@ class Esagono {
         if (millis() - this.tempoClick > 1000) {
           this.spostamentoAttivo = true;
           if (this.sovraffollamento > 100) {
-            this.targetSpostamentoBianco = map(this.sovraffollamento, 100, 200, 0, this.raggio * 0.5);
+            this.targetSpostamentoBianco = map(this.sovraffollamento, 100, 150, 0, this.raggio * 0.25);
           }
         }
       }
@@ -189,5 +189,19 @@ class Esagono {
       }
       
       pop();
+    }
+
+    calcolaColoreSovraffollamento() {
+      // Mappiamo il sovraffollamento da 100-150 a 0-1
+      let intensita = map(this.sovraffollamento, 100, 150, 0, 1, true);
+      // Limitiamo il valore tra 0 e 1
+      intensita = constrain(intensita, 0, 1);
+      
+      // Creiamo un colore che va dal bianco (255,255,255) al rosso (255,0,0)
+      let r = 255;  // Il rosso rimane sempre a 255
+      let g = lerp(255, 0, intensita);  // Il verde diminuisce linearmente
+      let b = lerp(255, 0, intensita);  // Il blu diminuisce linearmente
+      
+      return color(r, g, b);
     }
 } 

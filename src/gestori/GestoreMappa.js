@@ -106,6 +106,7 @@ class GestoreMappa {
       let y = parseFloat(riga.get('y').replace(',', '.'));
       let sovraffollamento = parseFloat(riga.get('sovraffollamento'));
       let regione = riga.get('regione');
+      let carcere = riga.get('carcere');
       
       // Incrementa il contatore per questa regione
       if (!contatoreRegioni.has(regione)) {
@@ -121,6 +122,7 @@ class GestoreMappa {
       
       let esagono = new Esagono(mappedX, mappedY, raggio, regione, colore, contatoreRegioni.get(regione));
       esagono.sovraffollamento = sovraffollamento;
+      esagono.carcere = carcere;
       return esagono;
     }
   

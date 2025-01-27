@@ -129,48 +129,38 @@ class GestoreTestoCarcere extends GestoreTestoBase {
     }
 
     aggiorna(regioneSelezionata, esagonoSelezionato) {
-        // Se siamo nella vista esagono ingrandito
-        if (esagonoSelezionato?.scaleMultiplier > 1.5) {
+        if (!regioneSelezionata || !esagonoSelezionato) {
+            return "";
+        }
+
+        // Se siamo nella vista ingrandita (esagono cliccato)
+        if (this.esagonoCliccato?.scaleMultiplier > 1.5) {
+            // Mantieni il testo dell'esagono cliccato, ignora completamente l'hover
+            return this.stato.testo;
+        }
+
+        // Se stiamo entrando nella vista ingrandita
+        if (esagonoSelezionato.scaleMultiplier > 1.5) {
             this.esagonoCliccato = esagonoSelezionato;
-        }
-        
-        // Se non c'è una regione selezionata o non c'è nessun esagono da mostrare
-        if (!regioneSelezionata || (!esagonoSelezionato && !this.esagonoCliccato)) {
-            if (this.stato.testo !== "") {
-                this.stato.inCancellazione = true;
-            }
-            return this.aggiornaTesto("");
-        }
-
-        // Se siamo nella vista regione (non ingrandita)
-        if (esagonoSelezionato?.scaleMultiplier <= 1.5 && this.esagonoCliccato?.scaleMultiplier <= 1.5) {
-            this.esagonoCliccato = null;
-            const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoSelezionato.id}`;
+            const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
+            const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
             const datiCarcere = this.datiCarceri.get(hexId);
-            const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
-
-            if (esagonoSelezionato !== this.stato.precedente) {
-                if (this.stato.testo !== "" && nuovoTesto !== this.stato.testo) {
-                    this.stato.inCancellazione = true;
-                }
-                this.stato.precedente = esagonoSelezionato;
-                this.stato.testo = nuovoTesto;
-            }
-
-            return this.aggiornaTesto(this.stato.testo);
+            this.stato.testo = datiCarcere ? datiCarcere.carcere : "";
+            return this.stato.testo;
         }
 
-        // Se siamo nella vista esagono ingrandito
-        const esagonoDaUsare = this.esagonoCliccato || esagonoSelezionato;
-        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${esagonoDaUsare.id}`;
+        // Altrimenti siamo nella vista normale, gestisci l'hover
+        this.esagonoCliccato = null;
+        const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
+        const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
         const datiCarcere = this.datiCarceri.get(hexId);
         const nuovoTesto = datiCarcere ? datiCarcere.carcere : "";
 
-        if (esagonoDaUsare !== this.stato.precedente) {
+        if (esagonoSelezionato !== this.stato.precedente) {
             if (this.stato.testo !== "" && nuovoTesto !== this.stato.testo) {
                 this.stato.inCancellazione = true;
             }
-            this.stato.precedente = esagonoDaUsare;
+            this.stato.precedente = esagonoSelezionato;
             this.stato.testo = nuovoTesto;
         }
 
@@ -212,7 +202,7 @@ class GestoreTestoSovraffollamento extends GestoreTestoBase {
         }
 
         // Se siamo nella vista esagono ingrandito
-        const hexId = `${regioneSelezionata.replace(' ', '_')}_hex_${this.esagonoCliccato.id}`;
+        const hexId = `${regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_')}_hex_${this.esagonoCliccato.id}`;
         const datiCarcere = this.datiCarceri.get(hexId);
 
         if (this.esagonoCliccato !== this.stato.precedente && datiCarcere) {
@@ -276,7 +266,6 @@ class GestoreTesto {
 
     async inizializza() {
         await this.caricaFont();
-        await this.caricaDatiCarceri();
     }
 
     async caricaFont() {
@@ -295,41 +284,19 @@ class GestoreTesto {
 
     setEsagoni(esagoni) {
         this.esagoni = esagoni;
-    }
-
-    async caricaDatiCarceri() {
-        try {
-            const response = await fetch('Database/coordinate_test.csv');
-            const csvText = await response.text();
-            const righe = csvText.split('\n').slice(1); // Salta l'intestazione
-            
-            righe.forEach(riga => {
-                if (!riga.trim()) return;
-                
-                const [
-                    regione,
-                    hexId,
-                    x,
-                    y,
-                    carcere,
-                    sovraffollamento
-                ] = riga.split(',').map(val => val.trim());
-                
-                if (!this.datiCarceri.has(hexId)) {
-                    this.datiCarceri.set(hexId, {
-                        carcere,
-                        regione,
-                        x: parseFloat(x),
-                        y: parseFloat(y),
-                        sovraffollamento: parseFloat(sovraffollamento),
-                        hexId
-                    });
-                }
+        // Aggiorna datiCarceri usando i dati degli esagoni
+        this.datiCarceri.clear();
+        for (let esagono of esagoni) {
+            const regioneNormalizzata = esagono.regione.replace(/ /g, '_').replace(/'/g, '_');
+            const chiave = `${regioneNormalizzata}_hex_${esagono.id}`;
+            this.datiCarceri.set(chiave, {
+                carcere: esagono.carcere || "",
+                regione: esagono.regione,
+                x: esagono.x,
+                y: esagono.y,
+                sovraffollamento: esagono.sovraffollamento,
+                hexId: chiave
             });
-            
-            console.log('Dati carceri caricati con successo');
-        } catch (error) {
-            console.error('Errore nel caricamento dei dati delle carceri:', error);
         }
     }
 
