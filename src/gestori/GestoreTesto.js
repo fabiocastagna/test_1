@@ -8,7 +8,7 @@ class GestoreTestoBase {
             ultimaCancellazione: 0
         };
         this.testoCorrente = "";
-        this.velocitaCancellazione = 20;
+        this.velocitaCancellazione = 2;
     }
 
     reset() {
@@ -20,7 +20,7 @@ class GestoreTestoBase {
         if (this.stato.inCancellazione) {
             let tempoCorrente = millis();
             if (tempoCorrente - this.stato.ultimaCancellazione > this.velocitaCancellazione) {
-                this.testoCorrente = this.testoCorrente.slice(0, -1);
+                this.testoCorrente = this.testoCorrente.slice(0, -3);
                 if (this.testoCorrente.length === 0) {
                     this.stato.testo = "";
                     this.stato.precedente = null;
@@ -53,6 +53,34 @@ class GestoreTestoRegione extends GestoreTestoBase {
         this.testoCompletato = false;
         this.nuovaRegione = null;
         this.regioneCliccata = false;
+        this.descrizione = "";
+        this.testoFormattato = [];
+        this.indiceCarattereCorrente = 0;
+    }
+
+    formattaTesto(testo, maxWidth) {
+        if (!testo) return [];
+        const [titolo, ...descrizione] = testo.split('\n');
+        const righe = [titolo];
+        
+        if (descrizione.length > 0) {
+            const testoDescrizione = descrizione.join(' ');
+            const parole = testoDescrizione.split(' ');
+            let rigaCorrente = '';
+
+            for (let parola of parole) {
+                const testRiga = rigaCorrente + (rigaCorrente ? ' ' : '') + parola;
+                textSize(16);
+                if (textWidth(testRiga) <= maxWidth) {
+                    rigaCorrente = testRiga;
+                } else {
+                    if (rigaCorrente) righe.push(rigaCorrente);
+                    rigaCorrente = parola;
+                }
+            }
+            if (rigaCorrente) righe.push(rigaCorrente);
+        }
+        return righe;
     }
 
     aggiorna(regioneSelezionata) {
@@ -60,13 +88,41 @@ class GestoreTestoRegione extends GestoreTestoBase {
             this.testoCompletato = false;
             this.nuovaRegione = null;
             this.regioneCliccata = false;
+            this.descrizione = "";
+            this.testoFormattato = [];
+            this.indiceCarattereCorrente = 0;
             return this.aggiornaTesto("");
         }
 
         if (this.regioneCliccata) {
-            this.testoCorrente = regioneSelezionata;
-            this.testoCompletato = true;
-            return regioneSelezionata;
+            const testoCompleto = regioneSelezionata + "\n" + this.descrizione;
+            this.testoFormattato = this.formattaTesto(testoCompleto, width * 0.2);
+            
+            const totaleCaratteri = this.testoFormattato.join('\n').length;
+            
+            if (this.indiceCarattereCorrente < totaleCaratteri) {
+                this.indiceCarattereCorrente++;
+                let caratteriRimanenti = this.indiceCarattereCorrente;
+                let testoCorrente = [];
+                
+                for (let riga of this.testoFormattato) {
+                    if (caratteriRimanenti <= 0) break;
+                    if (caratteriRimanenti >= riga.length) {
+                        testoCorrente.push(riga);
+                        caratteriRimanenti -= riga.length + 1;
+                    } else {
+                        testoCorrente.push(riga.substring(0, caratteriRimanenti));
+                        caratteriRimanenti = 0;
+                    }
+                }
+                
+                this.testoCorrente = testoCorrente.join('\n');
+            } else {
+                this.testoCorrente = this.testoFormattato.join('\n');
+                this.testoCompletato = true;
+            }
+            
+            return this.testoCorrente;
         }
 
         if (regioneSelezionata !== this.stato.precedente && this.testoCorrente !== "") {
@@ -105,11 +161,13 @@ class GestoreTestoRegione extends GestoreTestoBase {
         return this.testoCorrente;
     }
 
-    setRegioneCliccata(clicked, regione) {
+    setRegioneCliccata(clicked, regione, descrizione) {
         this.regioneCliccata = clicked;
         if (clicked) {
-            this.testoCorrente = regione;  // Imposta immediatamente il testo completo
-            this.testoCompletato = true;
+            this.testoCorrente = "";
+            this.testoCompletato = false;
+            this.descrizione = descrizione || "";
+            this.indiceCarattereCorrente = 0;
         }
     }
 
@@ -118,6 +176,9 @@ class GestoreTestoRegione extends GestoreTestoBase {
         this.testoCompletato = false;
         this.nuovaRegione = null;
         this.regioneCliccata = false;
+        this.descrizione = "";
+        this.testoFormattato = [];
+        this.indiceCarattereCorrente = 0;
     }
 }
 
@@ -133,13 +194,11 @@ class GestoreTestoCarcere extends GestoreTestoBase {
             return "";
         }
 
-        // Se siamo nella vista ingrandita (esagono cliccato)
         if (this.esagonoCliccato?.scaleMultiplier > 1.5) {
             // Mantieni il testo dell'esagono cliccato, ignora completamente l'hover
             return this.stato.testo;
         }
 
-        // Se stiamo entrando nella vista ingrandita
         if (esagonoSelezionato.scaleMultiplier > 1.5) {
             this.esagonoCliccato = esagonoSelezionato;
             const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
@@ -149,7 +208,6 @@ class GestoreTestoCarcere extends GestoreTestoBase {
             return this.stato.testo;
         }
 
-        // Altrimenti siamo nella vista normale, gestisci l'hover
         this.esagonoCliccato = null;
         const regioneNormalizzata = regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_');
         const hexId = `${regioneNormalizzata}_hex_${esagonoSelezionato.id}`;
@@ -178,16 +236,39 @@ class GestoreTestoSovraffollamento extends GestoreTestoBase {
         super(gestoreAnimazioni);
         this.datiCarceri = datiCarceri;
         this.percentuale = 0;
+        this.persone = 0;
+        this.spazio = 0;
         this.esagonoCliccato = null;
+        
+        this.TESTI = {
+            TASSO_AFFOLLAMENTO: "Tasso di affollamento:",
+            PERSONE_STANZA: "Persone per stanza:",
+            SPAZIO_PERSONA: "Spazio per persona:",
+            UNITA_PERCENTUALE: "%",
+            UNITA_SPAZIO: "m²"
+        };
+    }
+
+    formattaTesto(datiCarcere) {
+        const tasso = parseFloat(datiCarcere.sovraffollamento) || 0;
+        const persone = parseInt(datiCarcere.persone) || 0;
+        const spazio = parseFloat(datiCarcere.spazio) || 0;
+        
+        return [
+            this.TESTI.TASSO_AFFOLLAMENTO,
+            `${tasso}${this.TESTI.UNITA_PERCENTUALE}`,
+            this.TESTI.PERSONE_STANZA,
+            `${persone}`,
+            this.TESTI.SPAZIO_PERSONA,
+            `${spazio} ${this.TESTI.UNITA_SPAZIO}`
+        ].join('\n');
     }
 
     aggiorna(regioneSelezionata, esagonoSelezionato) {
-        // Se siamo nella vista esagono ingrandito
         if (esagonoSelezionato?.scaleMultiplier > 1.5) {
             this.esagonoCliccato = esagonoSelezionato;
         }
         
-        // Se non c'è una regione selezionata o non c'è nessun esagono ingrandito
         if (!regioneSelezionata || !this.esagonoCliccato) {
             if (this.stato.testo !== "") {
                 this.stato.inCancellazione = true;
@@ -195,20 +276,20 @@ class GestoreTestoSovraffollamento extends GestoreTestoBase {
             return this.aggiornaTesto("");
         }
 
-        // Se siamo nella vista regione (non ingrandita)
         if (this.esagonoCliccato?.scaleMultiplier <= 1.5) {
             this.esagonoCliccato = null;
             return this.aggiornaTesto("");
         }
 
-        // Se siamo nella vista esagono ingrandito
         const hexId = `${regioneSelezionata.replace(/ /g, '_').replace(/'/g, '_')}_hex_${this.esagonoCliccato.id}`;
         const datiCarcere = this.datiCarceri.get(hexId);
 
         if (this.esagonoCliccato !== this.stato.precedente && datiCarcere) {
             this.stato.precedente = this.esagonoCliccato;
-            this.percentuale = parseFloat(datiCarcere.sovraffollamento);
-            this.stato.testo = `Tasso di sovraffollamento:\n${this.percentuale}%`;
+            this.percentuale = parseFloat(datiCarcere.sovraffollamento) || 0;
+            this.persone = parseInt(datiCarcere.persone) || 0;
+            this.spazio = parseFloat(datiCarcere.spazio) || 0;
+            this.stato.testo = this.formattaTesto(datiCarcere);
             this.testoCorrente = "";
         }
 
@@ -222,6 +303,14 @@ class GestoreTestoSovraffollamento extends GestoreTestoBase {
 
     getPercentuale() {
         return this.percentuale;
+    }
+
+    getPersone() {
+        return this.persone;
+    }
+
+    getSpazio() {
+        return this.spazio;
     }
 }
 
@@ -284,7 +373,6 @@ class GestoreTesto {
 
     setEsagoni(esagoni) {
         this.esagoni = esagoni;
-        // Aggiorna datiCarceri usando i dati degli esagoni
         this.datiCarceri.clear();
         for (let esagono of esagoni) {
             const regioneNormalizzata = esagono.regione.replace(/ /g, '_').replace(/'/g, '_');
@@ -295,6 +383,8 @@ class GestoreTesto {
                 x: esagono.x,
                 y: esagono.y,
                 sovraffollamento: esagono.sovraffollamento,
+                persone: esagono.persone,
+                spazio: esagono.spazio,
                 hexId: chiave
             });
         }
@@ -328,8 +418,29 @@ class GestoreTesto {
             regione: this.gestoreRegione.aggiorna(regioneSelezionata),
             carcere: this.gestoreCarcere.aggiorna(regioneSelezionata, esagonoSelezionato),
             sovraffollamento: this.gestoreSovraffollamento.aggiorna(regioneSelezionata, esagonoSelezionato),
-            percentualeSovraffollamento: this.gestoreSovraffollamento.getPercentuale()
+            percentualeSovraffollamento: this.gestoreSovraffollamento.getPercentuale(),
+            persone: this.gestoreSovraffollamento.getPersone(),
+            spazio: this.gestoreSovraffollamento.getSpazio()
         };
+    }
+
+    wrapText(testo, maxWidth) {
+        const parole = testo.split(' ');
+        const righe = [];
+        let rigaCorrente = '';
+
+        for (let parola of parole) {
+            const testRiga = rigaCorrente + (rigaCorrente ? ' ' : '') + parola;
+            textSize(16); // Impostiamo la dimensione del testo per il calcolo della larghezza
+            if (textWidth(testRiga) <= maxWidth) {
+                rigaCorrente = testRiga;
+            } else {
+                if (rigaCorrente) righe.push(rigaCorrente);
+                rigaCorrente = parola;
+            }
+        }
+        if (rigaCorrente) righe.push(rigaCorrente);
+        return righe;
     }
 
     disegna() {
@@ -342,55 +453,96 @@ class GestoreTesto {
         textAlign(LEFT, CENTER);
         
         const xPos = width * 0.75;
-        const yPos = height * 0.5;
+        const maxWidth = width * 0.2;
+        const SPAZIO_CARCERE = 40;
+        const SPAZIO_SOVRAFFOLLAMENTO = 80;
+        const SPAZIO_PRIMA_CARCERE = 60;
         
-        // Disegna testo regione
+        let altezzaTotale = 0;
         if (testi.regione) {
+            const [nomeRegione, ...descrizione] = testi.regione.split('\n');
             textSize(32);
-            fill(255);
-            text(testi.regione, xPos, yPos);
+            altezzaTotale += 40;
+            
+            if (descrizione.length > 0) {
+                const testoDescrizione = descrizione.join(' ');
+                const righeDescrizione = this.wrapText(testoDescrizione, maxWidth);
+                altezzaTotale += righeDescrizione.length * 25;
+            }
+        }
+
+        altezzaTotale += SPAZIO_PRIMA_CARCERE + SPAZIO_CARCERE;
+
+        if (testi.sovraffollamento) {
+            const lines = testi.sovraffollamento.split('\n');
+            altezzaTotale += (lines.length / 2) * SPAZIO_SOVRAFFOLLAMENTO;
         }
         
-        // Disegna testo carcere
+        let yPos = (height - altezzaTotale) / 2;
+        
+        if (testi.regione) {
+            const [nomeRegione, ...descrizione] = testi.regione.split('\n');
+            
+            textSize(32);
+            fill(255);
+            text(nomeRegione, xPos, yPos);
+            yPos += 40;
+            
+            if (descrizione.length > 0) {
+                const testoDescrizione = descrizione.join(' ');
+                const righeDescrizione = this.wrapText(testoDescrizione, maxWidth);
+                
+                textSize(16);
+                fill(200);
+                for (let riga of righeDescrizione) {
+                    text(riga, xPos, yPos);
+                    yPos += 25;
+                }
+            }
+        }
+        
+        yPos += SPAZIO_PRIMA_CARCERE;
+        
         if (testi.carcere) {
             textSize(24);
             fill(200);
-            text(testi.carcere, xPos, yPos + 40);
+            text(testi.carcere, xPos, yPos);
         }
+        yPos += SPAZIO_CARCERE;
         
-        // Disegna testo sovraffollamento
         if (testi.sovraffollamento) {
             const lines = testi.sovraffollamento.split('\n');
+            const percentuale = testi.percentualeSovraffollamento;
             
-            textSize(20);
-            fill(150);
-            text(lines[0], xPos, yPos + 80);
-            
-            if (lines[1]) {
-                textSize(72);
-                const percentuale = testi.percentualeSovraffollamento;
+            let colore;
+            if (percentuale <= 100) {
+                colore = lerpColor(
+                    color(CONFIGURAZIONE.colori.esagonoBase),
+                    color(CONFIGURAZIONE.colori.esagonoMedio),
+                    map(percentuale, 0, 100, 0, 1)
+                );
+            } else if (percentuale <= 150) {
+                colore = lerpColor(
+                    color(CONFIGURAZIONE.colori.esagonoMedio),
+                    color(CONFIGURAZIONE.colori.esagonoAlto),
+                    map(percentuale, 100, 150, 0, 1)
+                );
+            } else {
+                colore = color(CONFIGURAZIONE.colori.esagonoAlto);
+            }
+
+            for (let i = 0; i < lines.length; i += 2) {
+                textSize(20);
+                fill(150);
+                text(lines[i], xPos, yPos);
                 
-                let colore;
-                if (percentuale <= 100) {
-                    colore = lerpColor(
-                        color(CONFIGURAZIONE.colori.esagonoBase),
-                        color(CONFIGURAZIONE.colori.esagonoMedio),
-                        map(percentuale, 0, 100, 0, 1)
-                    );
-                } else if (percentuale <= 150) {
-                    colore = lerpColor(
-                        color(CONFIGURAZIONE.colori.esagonoMedio),
-                        color(CONFIGURAZIONE.colori.esagonoAlto),
-                        map(percentuale, 100, 150, 0, 1)
-                    );
-                } else {
-                    colore = color(CONFIGURAZIONE.colori.esagonoAlto);
+                if (lines[i + 1]) {
+                    textSize(48);
+                    fill(colore);
+                    text(lines[i + 1], xPos, yPos + 40);
                 }
                 
-                fill(colore);
-                textAlign(CENTER, CENTER);
-                text(lines[1], xPos + width * 0.1, yPos + 160);
-                textAlign(LEFT, CENTER);
+                yPos += SPAZIO_SOVRAFFOLLAMENTO;
             }
         }
         

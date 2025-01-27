@@ -32,7 +32,7 @@ class Esagono {
       this.y = lerp(this.y, this.targetY, 0.1);
       
       if (this.tempoClick > 0 && !this.spostamentoAttivo && !this.inUscita) {
-        if (millis() - this.tempoClick > 1000) {
+        if (millis() - this.tempoClick > 5000) {
           this.spostamentoAttivo = true;
           if (this.sovraffollamento > 100) {
             this.targetSpostamentoBianco = map(this.sovraffollamento, 100, 150, 0, this.raggio * 0.25);
@@ -49,7 +49,6 @@ class Esagono {
         this.spostamentoBianco = this.targetSpostamentoBianco * easeProgresso;
         
         if (progresso >= 1) {
-          // Reset completo di tutte le proprietà di animazione
           this.inUscita = false;
           this.spostamentoAttivo = false;
           this.tempoClick = 0;
@@ -92,7 +91,6 @@ class Esagono {
       translate(this.x, this.y);
       rotate(this.rotazione);
       
-      // Disegna l'esagono rosso sotto (fermo)
       fill('red');
       beginShape();
       for (let angolo = 0; angolo < 6; angolo++) {
@@ -102,16 +100,13 @@ class Esagono {
       }
       endShape(CLOSE);
       
-      // Salva lo stato prima della traslazione dell'esagono bianco
       push();
       
-      // Usa il valore animato per lo spostamento solo se l'animazione è attiva
       if (this.spostamentoAttivo || this.inUscita) {
         let spostamento = this.spostamentoBianco * this.scaleMultiplier;
         translate(spostamento * cos(2 * PI / 3), -spostamento * sin(2 * PI / 3));
       }
       
-      // Disegna l'esagono nero
       fill('black');
       beginShape();
       for (let angolo = 0; angolo < 6; angolo++) {
@@ -121,10 +116,8 @@ class Esagono {
       }
       endShape(CLOSE);
       
-      // Ripristina lo stato per disegnare l'esagono con bordo nella posizione originale
       pop();
       
-      // Disegna l'esagono con bordo (fermo)
       let strokeColor = lerpColor(color("grey"), color("white"), this.hoverState);
       let strokeW = lerp(2, 3, this.hoverState);
       stroke(strokeColor.levels[0], strokeColor.levels[1], strokeColor.levels[2], this.opacita);
@@ -147,11 +140,10 @@ class Esagono {
       }
       endShape(CLOSE);
       
-      // Disegna i cerchi colorati sempre, ma adatta le dimensioni in base alla scala
       strokeWeight(0);
       
-      let targetOffsetX = -5.28 * this.scaleMultiplier;  // Offset per X
-      let targetOffsetY = -5.2 * this.scaleMultiplier;  // Offset per Y
+      let targetOffsetX = -5.28 * this.scaleMultiplier;
+      let targetOffsetY = -5.2 * this.scaleMultiplier;
       let currentOffsetX = 0;
       let currentOffsetY = 0;
       
@@ -162,7 +154,6 @@ class Esagono {
       }
       
       
-      // Calcola la dimensione del cerchio interno in base allo scaleMultiplier
       let dimensioneInterna = map(this.scaleMultiplier, 1, 20, 0.5, 0.3);
       fill(color(red(this.colore), green(this.colore), blue(this.colore), this.opacita));
       ellipse(currentOffsetX, currentOffsetY, this.raggio * this.scaleMultiplier * dimensioneInterna);
@@ -192,15 +183,12 @@ class Esagono {
     }
 
     calcolaColoreSovraffollamento() {
-      // Mappiamo il sovraffollamento da 100-150 a 0-1
       let intensita = map(this.sovraffollamento, 100, 150, 0, 1, true);
-      // Limitiamo il valore tra 0 e 1
       intensita = constrain(intensita, 0, 1);
       
-      // Creiamo un colore che va dal bianco (255,255,255) al rosso (255,0,0)
-      let r = 255;  // Il rosso rimane sempre a 255
-      let g = lerp(255, 0, intensita);  // Il verde diminuisce linearmente
-      let b = lerp(255, 0, intensita);  // Il blu diminuisce linearmente
+      let r = 255;
+      let g = lerp(255, 0, intensita);
+      let b = lerp(255, 0, intensita);
       
       return color(r, g, b);
     }

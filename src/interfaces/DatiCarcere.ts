@@ -4,5 +4,6 @@ interface DatiCarcere {
     x: number;
     y: number;
     sovraffollamento: number;
+    persone: number;
     hexId: string;
 } 

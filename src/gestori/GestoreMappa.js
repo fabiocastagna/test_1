@@ -107,6 +107,9 @@ class GestoreMappa {
       let sovraffollamento = parseFloat(riga.get('sovraffollamento'));
       let regione = riga.get('regione');
       let carcere = riga.get('carcere');
+      let persone = parseInt(riga.get('persone'));
+      let spazio = parseFloat(riga.get('spazio').replace(',', '.'));
+      let hexId = riga.get('hexagon_id');
       
       // Incrementa il contatore per questa regione
       if (!contatoreRegioni.has(regione)) {
@@ -123,6 +126,9 @@ class GestoreMappa {
       let esagono = new Esagono(mappedX, mappedY, raggio, regione, colore, contatoreRegioni.get(regione));
       esagono.sovraffollamento = sovraffollamento;
       esagono.carcere = carcere;
+      esagono.persone = persone;
+      esagono.spazio = spazio;
+      esagono.id = hexId;
       return esagono;
     }
   
@@ -172,7 +178,7 @@ class GestoreMappa {
     aggiorna() {
         // Aggiorna il fade in
         if (this.fadeInProgress < 1) {
-            this.fadeInProgress = min(this.fadeInProgress + 0.02, 1);
+            this.fadeInProgress = min(this.fadeInProgress + 0.01, 400);
         }
 
         let nuovaRegioneHover = null;
@@ -329,7 +335,11 @@ class GestoreMappa {
         this.regioneSelezionata = esagono.regione;
         this.stato = StatoMappa.REGIONE;
         
-        this.gestoreTesto.gestoreRegione.setRegioneCliccata(true, esagono.regione);
+        const descrizioneRegione = tabella.rows.find(row => 
+            row.get('regione') === esagono.regione
+        )?.get('descrizione');
+        
+        this.gestoreTesto.gestoreRegione.setRegioneCliccata(true, esagono.regione, descrizioneRegione);
         
         let regioneEsagoni = this.esagoni.filter(e => e.regione === this.regioneSelezionata);
         let centerX = regioneEsagoni.reduce((sum, h) => sum + h.originalX, 0) / regioneEsagoni.length;

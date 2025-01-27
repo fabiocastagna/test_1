@@ -6,46 +6,46 @@ const CONFIGURAZIONE = {
       esagonoAlto: "red"
     },
     margini: {
-      verticale: 0.8,  // 80% dell'altezza
-      orizzontale: 0.1 // 10% dai lati
+      verticale: 0.8,
+      orizzontale: 0.1
     },
     animazioni: {
         velocita: {
-            base: 0.05,      // Velocità base delle animazioni
-            testo: 50,       // Velocità animazione testo (millisecondi)
-            scala: 0.05,     // Velocità animazione scala
-            fluidita: 0.05,  // Fluidità delle animazioni
-            cancellazione: 20 // Velocità cancellazione testo
+            base: 0.05,      
+            testo: 50,
+            scala: 0.05,
+            fluidita: 0.05,
+            cancellazione: 20
         },
         durata: {
-            transizione: 500,    // Durata transizioni generiche
-            ingrandimento: 500,  // Durata animazione ingrandimento
-            uscita: 1000        // Durata animazione uscita
+            transizione: 500,
+            ingrandimento: 500,
+            uscita: 1000
         },
-        easing: 0.1  // Valore di easing per le interpolazioni
+        easing: 0.1
     },
     layout: {
         offset: {
             italia: {
-                x: 0.25,    // 10% della larghezza (spostamento a sinistra)
-                y: 0.35    // 35% dell'altezza
+                x: 0.25,
+                y: 0.35
             },
             regione: {
-                x: 0.25    // 25% della larghezza
+                x: 0.25
             }
         },
         scala: {
-            piccola: 0.3,      // Scala per elementi piccoli
-            piuPiccola: 0.6,   // Scala intermedia
-            normale: 1.2,      // Scala normale
-            grande: 20.0,      // Scala massima
-            punto: 0.01        // Scala minima
+            piccola: 0.3,
+            piuPiccola: 0.6,
+            normale: 1.2,
+            grande: 20.0,
+            punto: 0.01
         }
     },
     dimensioni: {
         esagono: {
-            raggioBase: 45,    // Il raggio base verrà diviso per questo valore
-            hitbox: 1.5        // Moltiplicatore per l'area cliccabile
+            raggioBase: 45,
+            hitbox: 1.5
         },
         bottone: {
             larghezza: 140,
@@ -54,14 +54,14 @@ const CONFIGURAZIONE = {
     },
     svg: {
         proporzioni: {
-            larghezza: 2.85,   // Moltiplicatore larghezza SVG
-            rapporto: 595.28 / 841.89  // Rapporto altezza/larghezza SVG
+            larghezza: 2.85,
+            rapporto: 595.28 / 841.89
         }
     },
     testi: {
         intro: {
             riga1: "In Italia ci sono 189 carceri",
-            riga2: "x di queste sono sovraffollate"
+            riga2: "187 sono sovraffollati"
         }
     }
 }; 
