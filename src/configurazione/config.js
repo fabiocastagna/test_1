@@ -61,7 +61,7 @@ const CONFIGURAZIONE = {
     testi: {
         intro: {
             riga1: "In Italia ci sono 189 carceri.",
-            riga2: "Di queste, 187 sono sovraffollate"
+            riga2: "Di queste, 187 sono sovraffollate."
         }
     }
 }; 
